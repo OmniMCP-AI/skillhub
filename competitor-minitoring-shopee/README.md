@@ -1,0 +1,1 @@
+# comptitors analysis for shopee
