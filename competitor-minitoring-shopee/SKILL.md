@@ -9,6 +9,7 @@
 ```bash
 opencli shopee search [keywords] --gmv 10000
 opencli shopee product {product_url}
+opencli shopee product-shopdora-download {product_url}
 opencli shopee product-shopdora-download https://shopee.com/xxx/123456 --output ./123456.xlsx
 opencli shopee product-shopdora-download https://shopee.com/xxx/{productid} --output ./{productid}.xlsx
 ```
@@ -98,8 +99,23 @@ opencli shopee product https://shopee.com/xxx/123456
 通过OpenCLI命令调用shopdora导出功能，直接下载评论、价格、SKU、销量等全量数据，保存为本地Excel文件，供后续自动化处理，无需额外操作。
 
 ```bash
+opencli shopee product-shopdora-download https://shopee.sg/Fonken-2-In-1-Card-Reader-Type-C-for-i-Phone-15-Series-SD-TF-Card-Reader-Adapter-U-Disk-Converter-Light-ning-Card-Reader-for-i-Phone-14-13-12-11-i.308419896.20195734283
 opencli shopee product-shopdora-download https://shopee.com/xxx/123456 --output ./123456.xlsx
 opencli shopee product-shopdora-download https://shopee.com/xxx/{productid} --output ./{productid}.xlsx
+```
+
+`opencli shopee product-shopdora-download [url]` 用于直接触发 Shopdora 评论导出，并返回本地下载结果，适合仅需要评论导出文件的场景。示例返回如下：
+
+```json
+[
+  {
+    "status": "success",
+    "message": "Downloaded Shopee review export with the recorded good-detail filter.",
+    "local_url": "file:///Users/duke/Downloads/Singapore(Product%20ID=20195734283)Export%20Review20260409062146.xlsx",
+    "local_path": "/Users/duke/Downloads/Singapore(Product ID=20195734283)Export Review20260409062146.xlsx",
+    "product_url": "https://shopee.sg/Fonken-2-In-1-Card-Reader-Type-C-for-i-Phone-15-Series-SD-TF-Card-Reader-Adapter-U-Disk-Converter-Light-ning-Card-Reader-for-i-Phone-14-13-12-11-i.308419896.20195734283"
+  }
+]
 ```
 
 ### 步骤3：数据处理（数据处理模块细化）
