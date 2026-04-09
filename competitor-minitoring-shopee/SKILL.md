@@ -338,4 +338,4 @@ curl -X POST https://play-be.omnimcp.ai/api/v1/excel/set_auto_filter \
 - 确保OpenCLI相关插件安装齐全，否则无法正常执行Shopee页面、shopdora插件的自动化操作；
 
 - 插入图片时，需确保链接有效，且对应表格中“主图”“材料参考图”“包装图片”等指定表头列，避免插入错误。
-> （注：文档部分内容可能由 AI 生成）
+
