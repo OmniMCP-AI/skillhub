@@ -17,7 +17,7 @@ opencli shopee product-shopdora-download https://shopee.com/xxx/{productid} --ou
 
 - OpenCLI工具
 
-- MaybeAI表格技能（技能地址：https://clawhub.ai/no7dw/maybeai-sheet-skill）
+- MaybeAI表格技能（技能地址：https://clawhub.ai/no7dw/maybeai-sheet-skill ）
 
 - 基础工具：curl、jq
 
