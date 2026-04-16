@@ -195,6 +195,22 @@ curl -X POST https://play-be.omnimcp.ai/api/v1/excel/import \
 6. 将处理后的完整数据上传至MaybeAI表格，获取文档ID；
 7. 将数据增量写入MaybeAI表格的竞品数据工作表，自动匹配上述标准表头；
 8. 导出最终竞品分析报告，完成全流程操作。
+9. 对于因为程序执行有异常而估算、mock的数据（单不含用户指定用实际数据估算的，如用户指定根据实际评论数估算的销量）需要用maybeai sheet skill的 batch_set_cell_style 标识出来
+```
+curl -X POST https://play-be.omnimcp.ai/api/v1/excel/batch_set_cell_style \
+    -H 'Content-Type: application/json' \
+    -d '{
+      "uri": "https://www.maybe.ai/docs/spreadsheets/d/<document_id>",
+      "worksheet_name": "cell-format-test2",
+      "range_addresses": ["B2:B100", "E2:E100"],
+      "style": {
+        "bold": true,
+        "horizontal": "center",
+        "wrap_text": true,
+        "bg_color": "#FFD966"
+      }
+    }'
+```    
 
 ## 九、技能调用注意事项
 
