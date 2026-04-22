@@ -36,6 +36,31 @@ description: Use when analyzing Shopee competitors or product opportunities with
 - 如需评论导出，Shopdora 也应已登录
 - MaybeAI 令牌可用：`MAYBEAI_API_TOKEN`
 
+## 依赖环境
+
+- OpenCLI
+- Chrome/Chromium + Browser Bridge
+- Shopee 登录态
+- Shopdora 登录态（仅评论导出时需要）
+- MaybeAI Sheet 能力或等价表格写入接口
+- 基础命令行工具：`curl`
+
+如果后续流程要读取导出的评论文件，执行环境还应具备本地 Excel/CSV 解析能力。
+
+## 环境变量配置
+
+```bash
+MAYBEAI_API_TOKEN=<your_token>
+DOC_ID=<maybeai_document_id>
+SHEET_URI=<maybeai_sheet_uri>
+```
+
+建议：
+
+- `MAYBEAI_API_TOKEN` 用于 MaybeAI 接口认证
+- `DOC_ID` 和 `SHEET_URI` 用于定位目标表格
+- Shopee 相关登录态不要写入环境变量，优先复用浏览器现有会话
+
 ## 最小输入
 
 执行本 skill 时，至少应向用户确认：
@@ -45,6 +70,7 @@ description: Use when analyzing Shopee competitors or product opportunities with
 - 排序方式：`top-sale`、`latest`、`relevance`
 - 是否需要评论导出
 - 是否需要写入 MaybeAI Sheet
+- 写入 MaybeAI Sheet 的 URI
 
 ## 当前可用命令
 
@@ -138,6 +164,39 @@ opencli shopee product-shopdora-download "https://shopee.com.my/...-i.1385679855
 
 如果某些值是估算值或异常回填值，用 `batch_set_cell_style` 做高亮标识。
 
+## 标准 Excel 目标表头格式
+
+如果要把竞品分析结果长期沉淀到 MaybeAI Sheet，建议至少使用下列表头：
+
+| 列  | 中文表头               | 英文表头                               | 说明                          |
+| --- | ---------------------- | -------------------------------------- | ----------------------------- |
+| A   | 日期                   | Date                                   | 调研日期，格式 `YYYY-MM-DD`   |
+| B   | 站点                   | Site                                   | Shopee 站点，如 `MY`、`SG`    |
+| C   | 平台                   | Platform                               | 固定填写 `Shopee`             |
+| D   | 主图                   | Main Image                             | 商品主图链接                  |
+| E   | 竞品链接               | Competitor Link                        | 商品链接                      |
+| F   | 上架时间               | Launch Time                            | 商品上架时间                  |
+| G   | 总销量                 | Total Sales Volume                     | 累计销量                      |
+| H   | 月销量                 | Monthly Sales Volume                   | 优先使用 30d 销量或显式估算值 |
+| I   | 客单价(当地货币)       | Unit Price (Local Currency)            | 当地货币价格                  |
+| J   | 客单价(¥)              | Unit Price (CNY)                       | 换算后的人民币价格            |
+| K   | 预估月 GMV(¥)          | Estimated Monthly GMV (CNY)            | 月销量 × 人民币客单价         |
+| L   | 30/60/90天销量趋势     | 30/60/90 Days Trend Summary            | 销量趋势总结                  |
+| M   | 定价(精确到尺寸)       | Pricing (Precise to Each Size)         | SKU/尺寸级价格信息            |
+| N   | 尺寸描述和材料分析     | Size & Material Analysis               | 规格和材质总结                |
+| O   | 评分                   | Rating                                 | 商品评分                      |
+| P   | 店铺名 & 链接          | Store Name & Link                      | 店铺名称和链接                |
+| Q   | 评论分析               | Review Analysis                        | 差评/好评分类与占比           |
+| R   | 热销尺寸               | Best-selling Size                      | 最热销尺寸/规格               |
+| S   | 热销款式 Top5 及占比   | Top 5 Best-selling Styles & Proportion | 前 5 热销款式                 |
+| T   | 不热销款式 Top5 及占比 | Top 5 Low-selling Styles & Proportion  | 后 5 低销量款式               |
+
+说明：
+
+- 当前 CLI 可直接提供链接、店铺、评分、部分价格、30d GMV、总 GMV 等字段
+- `J/K/L/Q/R/S/T` 这类字段通常需要在 CLI 输出基础上做二次处理或 AI 总结
+- 所有估算值都应显式标记，并在写表后高亮
+
 ## 输出约定
 
 推荐最终输出分为两层：
@@ -167,11 +226,15 @@ opencli shopee product-shopdora-download "https://shopee.com.my/...-i.1385679855
 - `product-shopdora-download` 未登录：读取 `shopdora_login_message`，标记为“评论未导出”
 - MaybeAI 写表失败：先输出本地结构化结果，不阻塞分析结论
 
-## 规范说明
+## 技能调用注意事项
 
-- 若要把这份文档作为真正可安装的 Codex skill，应将其放入独立目录并命名为 `SKILL.md`
-- 不要在 skill 内写死机器本地绝对路径
-- 不要声明当前 CLI 尚未实现的参数或步骤
+- 确保 `MAYBEAI_API_TOKEN`、`DOC_ID`、`SHEET_URI` 配置正确，否则表格上传或写入会失败
+- `shopee search` 只负责找候选链接，不负责 GMV 阈值筛选；GMV 筛选应在 `product` 阶段完成
+- `product` 和 `product-shopdora-download` 都要求浏览器登录态有效，否则会出现空数据或认证错误
+- `product-shopdora-download` 当前不支持 `--output`；下载文件路径应从返回值 `local_path` 读取
+- 批量抓取时建议串行或低并发执行，避免页面状态、标签页绑定和下载事件互相干扰
+- 对于估算值、异常回填值、缺失值，不要伪装成真实采集值；应在输出和表格里显式标注
+- 如果 `shopdora_login_message` 非空，说明 Shopdora 数据不完整，这类商品应单独标记
 
 ## 建议给 Agent 的工作准则
 
