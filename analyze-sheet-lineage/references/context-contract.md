@@ -63,6 +63,7 @@ Preferred default table columns:
 - `L1 ... Ln`
 - `单元格`
 - `字段`
+- `公式`
 - `值`
 - `说明`
 
@@ -74,3 +75,4 @@ Important rendering rules:
 4. Put formulas into fenced `excel` blocks after the explanation.
 5. The number of layer columns should match actual depth. Use `L1 | L2` for shallow chains and expand only when needed.
 6. The simple tree must preserve actual depth. If `A` leads to `B` and `B` leads to `C`, show nested indentation instead of listing `B` and `C` as flat siblings.
+7. The main table should include a `公式` column. Use `literal` for non-formula rows and keep full exact formulas in fenced `excel` blocks after the table when needed.

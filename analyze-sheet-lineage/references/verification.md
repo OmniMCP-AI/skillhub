@@ -95,6 +95,7 @@ Required checks:
    - `L1 ... Ln`
    - `单元格`
    - `字段`
+   - `公式`
    - `值`
    - `作用说明`
 7. There is one short `计算过程：` section.
@@ -122,22 +123,23 @@ ERP!BO2 主货号 = YSD028
    |__ ERP!AE2 出库SPU = YSD030
 ```
 
-| L1 | L2 | L3 | L4 | 单元格 | 字段 | 值 | 作用说明 |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `ERP!BO2` |  |  |  | `ERP!BO2` | `主货号` | `YSD028` | `目标单元格，最终输出` |
-|  | `└─ ERP!BN2` |  |  | `ERP!BN2` | `主货号辅助` | `YSD028` | `BO2 的直接上游` |
-|  |  | `├─ ERP!B2` |  | `ERP!B2` | `线上单号` | `260506M8EXBG1U` | `BN2 的查找条件 1` |
-|  |  |  | `└─ 订单!B117` | `订单!B117` | `Order ID` | `260506M8EXBG1U` | `与 ERP!B2 匹配的订单号` |
-|  |  | `├─ ERP!AB2` |  | `ERP!AB2` | `出库SKU` | `YSD030W40L60XY` | `BN2 的查找条件 2` |
-|  |  |  | `└─ 订单!P117` | `订单!P117` | `SKU Reference No.` | `YSD030W40L60XY` | `与 ERP!AB2 匹配的 SKU` |
-|  |  | `├─ 订单!N117` |  | `订单!N117` | `Parent SKU Reference No.` | `YSD028` | `BN2 实际取回的来源值` |
-|  |  | `└─ ERP!AE2` |  | `ERP!AE2` | `出库SPU` | `YSD030` | `BN2 查找失败时的备用回退，本次未使用` |
+| L1 | L2 | L3 | L4 | 单元格 | 字段 | 公式 | 值 | 作用说明 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `ERP!BO2` |  |  |  | `ERP!BO2` | `主货号` | `=IFERROR(IF(...),BN2)` | `YSD028` | `目标单元格，最终输出` |
+|  | `└─ ERP!BN2` |  |  | `ERP!BN2` | `主货号辅助` | `=IFERROR(INDEX(...),AE2)` | `YSD028` | `BO2 的直接上游` |
+|  |  | `├─ ERP!B2` |  | `ERP!B2` | `线上单号` | `literal` | `260506M8EXBG1U` | `BN2 的查找条件 1` |
+|  |  |  | `└─ 订单!B117` | `订单!B117` | `Order ID` | `literal` | `260506M8EXBG1U` | `与 ERP!B2 匹配的订单号` |
+|  |  | `├─ ERP!AB2` |  | `ERP!AB2` | `出库SKU` | `literal` | `YSD030W40L60XY` | `BN2 的查找条件 2` |
+|  |  |  | `└─ 订单!P117` | `订单!P117` | `SKU Reference No.` | `literal` | `YSD030W40L60XY` | `与 ERP!AB2 匹配的 SKU` |
+|  |  | `├─ 订单!N117` |  | `订单!N117` | `Parent SKU Reference No.` | `literal` | `YSD028` | `BN2 实际取回的来源值` |
+|  |  | `└─ ERP!AE2` |  | `ERP!AE2` | `出库SPU` | `literal` | `YSD030` | `BN2 查找失败时的备用回退，本次未使用` |
 
 Pass criteria:
 
 - `ERP!BO2` appears in the first row and first layer column
 - `ERP!BN2` appears as the direct child row
 - the simple tree nests `订单!B117` under `ERP!B2`, and nests `订单!P117` under `ERP!AB2`
+- the main table includes a `公式` column for every row, using formula text or `literal`
 - source keys and matched source values are visible without reading raw formulas first
 - the output is understandable without Mermaid
 - the output looks correct as rendered Markdown, not just as plain text

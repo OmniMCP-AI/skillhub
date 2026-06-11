@@ -145,6 +145,7 @@ Recommended default columns:
 - `L1 ... Ln`
 - `单元格`
 - `字段`
+- `公式`
 - `值`
 - `作用说明`
 
@@ -155,6 +156,9 @@ Layer column rules:
 3. Leave other layer columns blank.
 4. Use markers like `└─` or `├─` inside the `L` columns when they improve readability.
 5. Do not force `L4` when only two or three layers exist.
+6. Keep one `公式` column in the main table.
+7. Use `literal` for non-formula rows.
+8. For long formulas, keep a compact readable formula string in the table and retain the full exact formula in later fenced `excel` blocks.
 
 ## 11. Optional Tree Structure Rule
 
@@ -196,7 +200,7 @@ Formula display should balance fidelity and readability.
 5. Prefer separate formula blocks after the main table:
    - target formula
    - key direct-precedent formula
-6. Only keep formulas inside the main table when the user explicitly asks for a technical matrix view.
+6. Even when formula blocks are present, keep one short `公式` column in the table so each layer has an immediate formula or `literal`.
 
 ## 13. Explanation Rule
 

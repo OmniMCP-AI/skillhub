@@ -49,9 +49,10 @@ Do not use this skill for pure calculation help, formatting, or business interpr
   - short calculation steps
   - formula code blocks
 - The default table should be business-readable and tree-aware.
-- Prefer dynamic layer columns such as `L1 | L2`, or `L1 | L2 | L3 | L4`, followed by `单元格 | 字段 | 值 | 作用说明`.
+- Prefer dynamic layer columns such as `L1 | L2`, or `L1 | L2 | L3 | L4`, followed by `单元格 | 字段 | 公式 | 值 | 作用说明`.
 - Choose the number of `L` columns according to actual lineage depth. Do not force `L4` when only two layers exist.
-- Do not put long formulas inside the main table unless the user explicitly asks for a technical view.
+- Include one `公式` column in the main table. Use exact formulas for key formula rows and `literal` for literal rows.
+- If a formula is too long for the table, keep a compact readable version in the table and place the full exact formula again in the formula code block section.
 - Before the table, include a simple ASCII tree using `|__` style.
 - The simple tree must still preserve real parent-child depth. Do not flatten all upstream nodes to the same indentation level.
 - When it helps, also include a second detailed tree that shows matched source rows or fallback branches.
