@@ -101,6 +101,7 @@ Required checks:
 8. There are fenced `excel` blocks for the target formula and key direct-precedent formula.
 9. Mermaid is absent unless the user explicitly asked for it or the table is insufficient.
 10. The full ASCII tree is not stuffed into the main table cells.
+11. The simple tree preserves actual depth instead of flattening nested matched rows into sibling lines.
 
 ## 6. Reference Example: ERP!BO2
 
@@ -114,7 +115,9 @@ Expected shape:
 ERP!BO2 主货号 = YSD028
 |__ ERP!BN2 主货号辅助 = YSD028
    |__ ERP!B2 线上单号 = 260506M8EXBG1U
+   |   |__ 订单!B117 Order ID = 260506M8EXBG1U
    |__ ERP!AB2 出库SKU = YSD030W40L60XY
+   |   |__ 订单!P117 SKU Reference No. = YSD030W40L60XY
    |__ 订单!N117 Parent SKU Reference No. = YSD028
    |__ ERP!AE2 出库SPU = YSD030
 ```
@@ -134,6 +137,7 @@ Pass criteria:
 
 - `ERP!BO2` appears in the first row and first layer column
 - `ERP!BN2` appears as the direct child row
+- the simple tree nests `订单!B117` under `ERP!B2`, and nests `订单!P117` under `ERP!AB2`
 - source keys and matched source values are visible without reading raw formulas first
 - the output is understandable without Mermaid
 - the output looks correct as rendered Markdown, not just as plain text

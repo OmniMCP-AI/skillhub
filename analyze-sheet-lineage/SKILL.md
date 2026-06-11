@@ -53,6 +53,7 @@ Do not use this skill for pure calculation help, formatting, or business interpr
 - Choose the number of `L` columns according to actual lineage depth. Do not force `L4` when only two layers exist.
 - Do not put long formulas inside the main table unless the user explicitly asks for a technical view.
 - Before the table, include a simple ASCII tree using `|__` style.
+- The simple tree must still preserve real parent-child depth. Do not flatten all upstream nodes to the same indentation level.
 - When it helps, also include a second detailed tree that shows matched source rows or fallback branches.
 - Do not put the full `|__` tree directly inside the main table cells unless the user explicitly asks for a pure text matrix.
 - Include direct precedents whenever they can be identified.

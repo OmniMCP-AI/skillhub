@@ -126,6 +126,7 @@ Optimize for chat rendering first.
 4. Do not place long formulas inside the main table by default.
 5. Move long formulas into fenced `excel` code blocks after the explanation.
 6. Use business-readable field names whenever possible.
+7. The simple tree still needs true depth. If one lookup key resolves to a matched row, the matched row should be nested under that key, not shown as a flat sibling.
 
 ## 10. Main Table Construction Rule
 
@@ -179,9 +180,10 @@ Rules:
 1. Put the most important identity first: cell or range address.
 2. Use branch markers only to communicate structure, not decoration.
 3. The simple tree should always appear.
-4. Add a detailed tree when it materially improves understanding.
-5. Do not try to render the entire graph with ASCII art.
-6. Do not embed the full tree inside the main Markdown table by default.
+4. The simple tree must preserve real parent-child depth, even when it omits some labels or notes.
+5. Add a detailed tree when it materially improves understanding.
+6. Do not try to render the entire graph with ASCII art.
+7. Do not embed the full tree inside the main Markdown table by default.
 
 ## 12. Formula Display Rule
 

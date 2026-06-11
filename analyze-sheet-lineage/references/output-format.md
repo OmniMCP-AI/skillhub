@@ -36,7 +36,9 @@ Example:
 ERP!BO2 主货号 = YSD028
 |__ ERP!BN2 主货号辅助 = YSD028
    |__ ERP!B2 线上单号 = 260506M8EXBG1U
+   |   |__ 订单!B117 Order ID = 260506M8EXBG1U
    |__ ERP!AB2 出库SKU = YSD030W40L60XY
+   |   |__ 订单!P117 SKU Reference No. = YSD030W40L60XY
    |__ 订单!N117 Parent SKU Reference No. = YSD028
    |__ ERP!AE2 出库SPU = YSD030
 ```
@@ -64,6 +66,7 @@ ERP!BO2 主货号 = YSD028
 Rules:
 
 - The simple tree is the default and should always appear.
+- The simple tree must keep real structure depth. It may be shorter than the detailed tree, but it must not flatten nested relationships into one level.
 - The detailed tree is recommended when it adds real explanatory value.
 - Keep tree lines short enough to read in chat.
 
@@ -183,7 +186,9 @@ Recommended wording:
 ERP!BO2 主货号 = YSD028
 |__ ERP!BN2 主货号辅助 = YSD028
    |__ ERP!B2 线上单号 = 260506M8EXBG1U
+   |   |__ 订单!B117 Order ID = 260506M8EXBG1U
    |__ ERP!AB2 出库SKU = YSD030W40L60XY
+   |   |__ 订单!P117 SKU Reference No. = YSD030W40L60XY
    |__ 订单!N117 Parent SKU Reference No. = YSD028
    |__ ERP!AE2 出库SPU = YSD030
 

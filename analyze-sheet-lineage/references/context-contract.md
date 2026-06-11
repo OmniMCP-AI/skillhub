@@ -73,3 +73,4 @@ Important rendering rules:
 3. Use `|__` tree blocks before the table, not instead of the table.
 4. Put formulas into fenced `excel` blocks after the explanation.
 5. The number of layer columns should match actual depth. Use `L1 | L2` for shallow chains and expand only when needed.
+6. The simple tree must preserve actual depth. If `A` leads to `B` and `B` leads to `C`, show nested indentation instead of listing `B` and `C` as flat siblings.
