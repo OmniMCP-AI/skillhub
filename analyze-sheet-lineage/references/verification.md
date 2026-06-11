@@ -2,7 +2,7 @@
 
 ## Goal
 
-Verify that the workflow can read formula-based lineage correctly with `read_sheet(value_render_option="FORMULA")`, and can present the result in a friendly Markdown format that renders well in chat.
+Verify that the workflow can read formula-based lineage correctly with `read_sheet(value_render_option="FORMULA")`, and can present the result in a friendly Markdown format that renders well in chat, with tree blocks plus a layered table.
 
 ## 1. Single Cell
 
@@ -21,7 +21,7 @@ Pass criteria:
 - target cell is correct
 - direct precedents match visible formula references
 - recursive chain stops at literals or declared stop conditions
-- output includes a short conclusion, a concise Markdown table, calculation steps, and formula blocks
+- output includes a short conclusion, a simple tree, a concise layered Markdown table, calculation steps, and formula blocks
 
 ## 2. Multi-Cell Range
 
@@ -39,7 +39,7 @@ Pass criteria:
 - range scope is preserved
 - each formula cell has its own direct precedents
 - shared upstream cells are de-duplicated in the recursive graph
-- table rows stay readable and do not dump the whole range blindly
+- tree and table stay readable and do not dump the whole range blindly
 
 ## 3. Cross-Sheet References
 
@@ -57,7 +57,7 @@ Pass criteria:
 - sheet names are preserved exactly
 - lineage crosses worksheets correctly
 - no implicit sheet rewrite happens during parsing
-- the main Markdown table still stays readable after crossing worksheets
+- the tree plus main Markdown table still stay readable after crossing worksheets
 
 ## 4. Boundary Cases
 
@@ -88,17 +88,19 @@ Required checks:
 
 1. There is one short title.
 2. There is one short `结论：` paragraph.
-3. There is one Markdown table.
-4. The default table columns are business-readable:
-   - `层级`
+3. There is one simple `依赖树：` block using `|__`.
+4. There is one `详细依赖树：` block when lookup or fallback details matter.
+5. There is one Markdown table.
+6. The default table columns are business-readable and layer-aware:
+   - `L1 ... Ln`
    - `单元格`
    - `字段`
    - `值`
-   - `说明`
-5. There is one short `计算过程：` section.
-6. There are fenced `excel` blocks for the target formula and key direct-precedent formula.
-7. Mermaid is absent unless the user explicitly asked for it or the table is insufficient.
-8. Raw tree glyphs are not embedded inside the default main table.
+   - `作用说明`
+7. There is one short `计算过程：` section.
+8. There are fenced `excel` blocks for the target formula and key direct-precedent formula.
+9. Mermaid is absent unless the user explicitly asked for it or the table is insufficient.
+10. The full ASCII tree is not stuffed into the main table cells.
 
 ## 6. Reference Example: ERP!BO2
 
@@ -106,21 +108,32 @@ Use this as a smoke test example when possible.
 
 Expected shape:
 
-| 层级 | 单元格 | 字段 | 值 | 说明 |
-| ---: | --- | --- | --- | --- |
-| 0 | `ERP!BO2` | `主货号` | `YSD028` | `目标单元格，最终输出结果` |
-| 1 | `ERP!BN2` | `主货号辅助` | `YSD028` | `BO2 的直接上游` |
-| 2 | `ERP!B2` | `线上单号` | `260506M8EXBG1U` | `用于匹配订单表的 Order ID` |
-| 2 | `ERP!AB2` | `出库SKU` | `YSD030W40L60XY` | `用于匹配订单表的 SKU Reference No.` |
-| 3 | `订单!B117` | `Order ID` | `260506M8EXBG1U` | `命中的订单号` |
-| 3 | `订单!P117` | `SKU Reference No.` | `YSD030W40L60XY` | `命中的 SKU` |
-| 3 | `订单!N117` | `Parent SKU Reference No.` | `YSD028` | `BN2 实际取回的来源值` |
-| 备用 | `ERP!AE2` | `—` | `YSD030` | `仅当 BN2 查找失败时回退使用` |
+依赖树：
+
+```text
+ERP!BO2 主货号 = YSD028
+|__ ERP!BN2 主货号辅助 = YSD028
+   |__ ERP!B2 线上单号 = 260506M8EXBG1U
+   |__ ERP!AB2 出库SKU = YSD030W40L60XY
+   |__ 订单!N117 Parent SKU Reference No. = YSD028
+   |__ ERP!AE2 出库SPU = YSD030
+```
+
+| L1 | L2 | L3 | L4 | 单元格 | 字段 | 值 | 作用说明 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `ERP!BO2` |  |  |  | `ERP!BO2` | `主货号` | `YSD028` | `目标单元格，最终输出` |
+|  | `└─ ERP!BN2` |  |  | `ERP!BN2` | `主货号辅助` | `YSD028` | `BO2 的直接上游` |
+|  |  | `├─ ERP!B2` |  | `ERP!B2` | `线上单号` | `260506M8EXBG1U` | `BN2 的查找条件 1` |
+|  |  |  | `└─ 订单!B117` | `订单!B117` | `Order ID` | `260506M8EXBG1U` | `与 ERP!B2 匹配的订单号` |
+|  |  | `├─ ERP!AB2` |  | `ERP!AB2` | `出库SKU` | `YSD030W40L60XY` | `BN2 的查找条件 2` |
+|  |  |  | `└─ 订单!P117` | `订单!P117` | `SKU Reference No.` | `YSD030W40L60XY` | `与 ERP!AB2 匹配的 SKU` |
+|  |  | `├─ 订单!N117` |  | `订单!N117` | `Parent SKU Reference No.` | `YSD028` | `BN2 实际取回的来源值` |
+|  |  | `└─ ERP!AE2` |  | `ERP!AE2` | `出库SPU` | `YSD030` | `BN2 查找失败时的备用回退，本次未使用` |
 
 Pass criteria:
 
-- `ERP!BO2` is row `0`
-- `ERP!BN2` is row `1`
+- `ERP!BO2` appears in the first row and first layer column
+- `ERP!BN2` appears as the direct child row
 - source keys and matched source values are visible without reading raw formulas first
 - the output is understandable without Mermaid
 - the output looks correct as rendered Markdown, not just as plain text
@@ -132,5 +145,5 @@ Pass criteria:
 - Reads used `value_render_option="FORMULA"`
 - Read scope stayed minimal
 - Output distinguishes `direct precedents` from recursive lineage
-- Output uses friendly Markdown as the default artifact
+- Output uses tree plus layered-table Markdown as the default artifact
 - Output includes caveats for uncertain or engine-dependent cases

@@ -1,6 +1,6 @@
 # Spreadsheet Lineage Output Format
 
-Use this structure for the final answer. The default presentation should be friendly Markdown that renders well in chat UIs.
+Use this structure for the final answer. The default presentation should be friendly Markdown that renders well in chat UIs and spreadsheets.
 
 ## 1. Title
 
@@ -20,32 +20,98 @@ Good example:
 结论：ERP!BO2 的值 YSD028 来自 ERP!BN2；ERP!BN2 又通过订单号和出库 SKU，在“订单”表中匹配到第 117 行，并取回 Parent SKU Reference No.
 ```
 
-Keep it short and business-readable.
+## 3. Tree Views Before The Table
 
-## 3. Main Table
+Before the table, output tree structure first.
 
-The default table should be concise and easy to render.
+### 3.1 Simple Tree
 
-Recommended columns:
+Always include one short tree using `|__` style.
 
-| 层级 | 单元格 | 字段 | 值 | 说明 |
-| ---: | --- | --- | --- | --- |
+Example:
 
-Column rules:
+```md
+依赖树：
 
-- `层级`
-  - Use simple depth labels such as `0`, `1`, `2`, `3`, or `备用`.
-- `单元格`
-  - Use direct addresses like `ERP!BO2`, `订单!N117`.
-- `字段`
-  - Prefer business-facing labels when available, such as `主货号`, `出库SKU`, `Order ID`.
-  - If the field name is unknown, use `—`.
-- `值`
-  - Show the actual computed or literal value.
-- `说明`
-  - One short phrase describing the role of the row.
+ERP!BO2 主货号 = YSD028
+|__ ERP!BN2 主货号辅助 = YSD028
+   |__ ERP!B2 线上单号 = 260506M8EXBG1U
+   |__ ERP!AB2 出库SKU = YSD030W40L60XY
+   |__ 订单!N117 Parent SKU Reference No. = YSD028
+   |__ ERP!AE2 出库SPU = YSD030
+```
 
-## 4. Calculation Steps
+### 3.2 Detailed Tree
+
+When the chain contains lookup keys, matched rows, fallback branches, or other important details, include a second tree.
+
+Example:
+
+```md
+详细依赖树：
+
+ERP!BO2 主货号 = YSD028
+|__ ERP!BN2 主货号辅助 = YSD028
+   |__ 查找条件 1: ERP!B2 线上单号 = 260506M8EXBG1U
+   |   |__ 匹配到: 订单!B117 Order ID = 260506M8EXBG1U
+   |__ 查找条件 2: ERP!AB2 出库SKU = YSD030W40L60XY
+   |   |__ 匹配到: 订单!P117 SKU Reference No. = YSD030W40L60XY
+   |__ 返回字段: 订单!N117 Parent SKU Reference No. = YSD028
+   |__ 备用回退: ERP!AE2 出库SPU = YSD030
+   |__ 仅当 INDEX/MATCH 查找失败时使用；本次未使用
+```
+
+Rules:
+
+- The simple tree is the default and should always appear.
+- The detailed tree is recommended when it adds real explanatory value.
+- Keep tree lines short enough to read in chat.
+
+## 4. Main Table
+
+After the tree block, output one detailed table.
+
+The table should use dynamic layer columns. The number of `L` columns depends on actual lineage depth.
+
+Examples:
+
+- shallow chain: `L1 | L2 | 单元格 | 字段 | 值 | 作用说明`
+- deeper chain: `L1 | L2 | L3 | L4 | 单元格 | 字段 | 值 | 作用说明`
+
+Recommended default suffix columns:
+
+| 单元格 | 字段 | 值 | 作用说明 |
+| --- | --- | --- | --- |
+
+Layer rules:
+
+- `L1...Ln` only show structure.
+- Put the node only in the column that corresponds to its layer.
+- Leave the other layer columns empty.
+- Use branch markers like `└─` or `├─` inside the `L` columns when helpful.
+- If the chain depth is 2, use only `L1 | L2`.
+- If the chain depth is 4, use `L1 | L2 | L3 | L4`.
+
+Preferred full example:
+
+| L1 | L2 | L3 | L4 | 单元格 | 字段 | 值 | 作用说明 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| ERP!BO2 |  |  |  | ERP!BO2 | 主货号 | YSD028 | 目标单元格，最终输出 |
+|  | └─ ERP!BN2 |  |  | ERP!BN2 | 主货号辅助 | YSD028 | BO2 的直接上游 |
+|  |  | ├─ ERP!B2 |  | ERP!B2 | 线上单号 | 260506M8EXBG1U | BN2 的查找条件 1，用于匹配订单表 Order ID |
+|  |  |  | └─ 订单!B117 | 订单!B117 | Order ID | 260506M8EXBG1U | 与 ERP!B2 匹配的订单号 |
+|  |  | ├─ ERP!AB2 |  | ERP!AB2 | 出库SKU | YSD030W40L60XY | BN2 的查找条件 2，用于匹配订单表 SKU Reference No. |
+|  |  |  | └─ 订单!P117 | 订单!P117 | SKU Reference No. | YSD030W40L60XY | 与 ERP!AB2 匹配的 SKU |
+|  |  | ├─ 订单!N117 |  | 订单!N117 | Parent SKU Reference No. | YSD028 | BN2 实际取回的来源值 |
+|  |  | └─ ERP!AE2 |  | ERP!AE2 | 出库SPU | YSD030 | BN2 查找失败时的备用回退，本次未使用 |
+
+Rules:
+
+- The `L` columns express the graph shape.
+- `单元格 | 字段 | 值 | 作用说明` express readable details.
+- Do not put long formulas into this main table by default.
+
+## 5. Calculation Steps
 
 After the table, add a short `计算过程：` section with 3 to 6 numbered steps.
 
@@ -60,7 +126,7 @@ Example:
 4. ERP!BO2 再对 BN2 做清洗；当前 BN2 不包含 `-`，所以最终回退为 BN2 本身。
 ```
 
-## 5. Formulas
+## 6. Formulas
 
 Put formulas after the explanation, not inside the main table by default.
 
@@ -87,32 +153,6 @@ Rules:
 - Keep exact formulas for the target cell and the most important direct precedent.
 - Lower-level formulas may be omitted if they are just literals or add little value.
 
-## 6. Optional Tree View
-
-Tree view is optional. Do not use it as the default main artifact.
-
-Use only when:
-
-- the user explicitly asks for a dependency tree
-- the chain is easier to explain as a tree than as a table
-
-If used, place it after the main table or after `计算过程`.
-
-Valid example:
-
-```md
-依赖树：
-
-ERP!BO2
-|_ ERP!BN2
-   |_ ERP!B2
-   |_ ERP!AB2
-   |_ 订单!N117
-   |_ ERP!AE2
-```
-
-Do not embed this tree directly inside a Markdown table cell.
-
 ## 7. Optional Mermaid
 
 Add Mermaid only when one of these is true:
@@ -138,16 +178,36 @@ Recommended wording:
 
 结论：ERP!BO2 的值 YSD028 来自 ERP!BN2；ERP!BN2 又通过订单号和出库 SKU，在“订单”表中匹配到第 117 行，并取回 Parent SKU Reference No.
 
-| 层级 | 单元格 | 字段 | 值 | 说明 |
-| ---: | --- | --- | --- | --- |
-| 0 | ERP!BO2 | 主货号 | YSD028 | 目标单元格，最终输出结果 |
-| 1 | ERP!BN2 | 主货号辅助 | YSD028 | BO2 的直接上游 |
-| 2 | ERP!B2 | 线上单号 | 260506M8EXBG1U | 用于匹配“订单”表的 Order ID |
-| 2 | ERP!AB2 | 出库SKU | YSD030W40L60XY | 用于匹配“订单”表的 SKU Reference No. |
-| 3 | 订单!B117 | Order ID | 260506M8EXBG1U | 命中的订单号 |
-| 3 | 订单!P117 | SKU Reference No. | YSD030W40L60XY | 命中的 SKU |
-| 3 | 订单!N117 | Parent SKU Reference No. | YSD028 | BN2 实际取回的来源值 |
-| 备用 | ERP!AE2 | — | YSD030 | 仅当 BN2 查找失败时回退使用 |
+依赖树：
+
+ERP!BO2 主货号 = YSD028
+|__ ERP!BN2 主货号辅助 = YSD028
+   |__ ERP!B2 线上单号 = 260506M8EXBG1U
+   |__ ERP!AB2 出库SKU = YSD030W40L60XY
+   |__ 订单!N117 Parent SKU Reference No. = YSD028
+   |__ ERP!AE2 出库SPU = YSD030
+
+详细依赖树：
+
+ERP!BO2 主货号 = YSD028
+|__ ERP!BN2 主货号辅助 = YSD028
+   |__ 查找条件 1: ERP!B2 线上单号 = 260506M8EXBG1U
+   |   |__ 匹配到: 订单!B117 Order ID = 260506M8EXBG1U
+   |__ 查找条件 2: ERP!AB2 出库SKU = YSD030W40L60XY
+   |   |__ 匹配到: 订单!P117 SKU Reference No. = YSD030W40L60XY
+   |__ 返回字段: 订单!N117 Parent SKU Reference No. = YSD028
+   |__ 备用回退: ERP!AE2 出库SPU = YSD030
+
+| L1 | L2 | L3 | L4 | 单元格 | 字段 | 值 | 作用说明 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| ERP!BO2 |  |  |  | ERP!BO2 | 主货号 | YSD028 | 目标单元格，最终输出 |
+|  | └─ ERP!BN2 |  |  | ERP!BN2 | 主货号辅助 | YSD028 | BO2 的直接上游 |
+|  |  | ├─ ERP!B2 |  | ERP!B2 | 线上单号 | 260506M8EXBG1U | BN2 的查找条件 1，用于匹配订单表 Order ID |
+|  |  |  | └─ 订单!B117 | 订单!B117 | Order ID | 260506M8EXBG1U | 与 ERP!B2 匹配的订单号 |
+|  |  | ├─ ERP!AB2 |  | ERP!AB2 | 出库SKU | YSD030W40L60XY | BN2 的查找条件 2，用于匹配订单表 SKU Reference No. |
+|  |  |  | └─ 订单!P117 | 订单!P117 | SKU Reference No. | YSD030W40L60XY | 与 ERP!AB2 匹配的 SKU |
+|  |  | ├─ 订单!N117 |  | 订单!N117 | Parent SKU Reference No. | YSD028 | BN2 实际取回的来源值 |
+|  |  | └─ ERP!AE2 |  | ERP!AE2 | 出库SPU | YSD030 | BN2 查找失败时的备用回退，本次未使用 |
 
 计算过程：
 

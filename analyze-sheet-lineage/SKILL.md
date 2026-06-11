@@ -43,13 +43,18 @@ Do not use this skill for pure calculation help, formatting, or business interpr
 - Prefer this order:
   - title
   - one-sentence conclusion
+  - one simple tree block
+  - one detailed tree block when useful
   - one concise Markdown table
   - short calculation steps
   - formula code blocks
-- The default table should be business-readable. Prefer columns such as `层级 | 单元格 | 字段 | 值 | 说明`.
+- The default table should be business-readable and tree-aware.
+- Prefer dynamic layer columns such as `L1 | L2`, or `L1 | L2 | L3 | L4`, followed by `单元格 | 字段 | 值 | 作用说明`.
+- Choose the number of `L` columns according to actual lineage depth. Do not force `L4` when only two layers exist.
 - Do not put long formulas inside the main table unless the user explicitly asks for a technical view.
-- Do not put `|_` or other tree glyphs inside the main table by default.
-- A tree-style lineage block is optional and should be used only when it materially helps.
+- Before the table, include a simple ASCII tree using `|__` style.
+- When it helps, also include a second detailed tree that shows matched source rows or fallback branches.
+- Do not put the full `|__` tree directly inside the main table cells unless the user explicitly asks for a pure text matrix.
 - Include direct precedents whenever they can be identified.
 - Include recursive lineage only when it materially helps the user.
 - Output Mermaid only when the user explicitly asks for a diagram or when the table alone is still too hard to follow.

@@ -106,6 +106,8 @@ The workflow should try to produce:
 - target cell or target range
 - title
 - concise conclusion
+- one simple tree block
+- one detailed tree block when useful
 - one Markdown table as the primary artifact
 - short calculation steps
 - formula code blocks for the target and key direct precedents
@@ -118,11 +120,12 @@ The workflow should try to produce:
 
 Optimize for chat rendering first.
 
-1. Keep the main table simple.
-2. Do not place raw tree glyphs such as `|_` inside a table cell by default.
-3. Do not place long formulas inside the main table by default.
-4. Move long formulas into fenced `excel` code blocks after the explanation.
-5. Use business-readable field names whenever possible.
+1. Put one simple `|__` tree before the main table.
+2. Add one detailed `|__` tree when lookup keys, matched rows, or fallback branches matter.
+3. Keep the main table simple and spreadsheet-friendly.
+4. Do not place long formulas inside the main table by default.
+5. Move long formulas into fenced `excel` code blocks after the explanation.
+6. Use business-readable field names whenever possible.
 
 ## 10. Main Table Construction Rule
 
@@ -130,47 +133,55 @@ After resolving lineage, normalize the final answer into rows.
 
 Recommended row strategy:
 
-1. Row `0` is always the target cell or range.
-2. Row `1` contains direct precedents of the target formula.
-3. Rows `2+` contain recursive supports such as lookup keys, matched source cells, fallback literals, or deeper precedent formulas.
-4. Rows at the same logical depth may repeat the same `layer_no#`.
-5. Keep the number of rows small. Prefer 4 to 10 high-signal rows over exhaustive dumps.
+1. Row `1` is always the target cell or range.
+2. The next rows contain direct precedents of the target formula.
+3. Deeper rows contain recursive supports such as lookup keys, matched source cells, fallback literals, or deeper precedent formulas.
+4. Keep the number of rows small. Prefer 4 to 10 high-signal rows over exhaustive dumps.
+5. The shape should remain readable after copy/paste into chat or spreadsheets.
 
 Recommended default columns:
 
-- `层级`
+- `L1 ... Ln`
 - `单元格`
 - `字段`
 - `值`
-- `说明`
+- `作用说明`
 
-Use `备用` for fallback rows when that reads better than a numeric depth.
+Layer column rules:
+
+1. Use dynamic layer columns such as `L1 | L2` or `L1 | L2 | L3 | L4`.
+2. Put each node only in the column for its actual depth.
+3. Leave other layer columns blank.
+4. Use markers like `└─` or `├─` inside the `L` columns when they improve readability.
+5. Do not force `L4` when only two or three layers exist.
 
 ## 11. Optional Tree Structure Rule
 
-The tree view is optional and should be separate from the main table.
+The tree view should be separate from the main table and should come before the table.
 
 Recommended branch labels:
 
-- `target: Sheet1!F8`
-- `└─ direct: Orders!C8`
-- `├─ key: ERP!B2`
-- `├─ source: 订单!N117`
-- `└─ fallback: ERP!AE2`
+- `Sheet1!F8`
+- `|__ Orders!C8`
+- `   |__ ERP!B2`
+- `   |__ 订单!N117`
+- `   |__ ERP!AE2`
 
 ASCII-only tree style is also allowed when that is easier to copy into spreadsheets or plain-text environments:
 
 - `Sheet1!F8`
-- `|_ Orders!C8`
-- `   |_ ERP!B2`
-- `   |_ 订单!N117`
+- `|__ Orders!C8`
+- `   |__ ERP!B2`
+- `   |__ 订单!N117`
 
 Rules:
 
 1. Put the most important identity first: cell or range address.
 2. Use branch markers only to communicate structure, not decoration.
-3. Do not try to render the entire graph with ASCII art.
-4. Do not embed the tree inside the main Markdown table by default.
+3. The simple tree should always appear.
+4. Add a detailed tree when it materially improves understanding.
+5. Do not try to render the entire graph with ASCII art.
+6. Do not embed the full tree inside the main Markdown table by default.
 
 ## 12. Formula Display Rule
 
@@ -187,7 +198,7 @@ Formula display should balance fidelity and readability.
 
 ## 13. Explanation Rule
 
-The `说明` column should explain role, not restate the formula.
+The `作用说明` column should explain role, not restate the formula.
 
 Good examples:
 

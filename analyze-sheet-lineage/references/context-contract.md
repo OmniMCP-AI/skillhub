@@ -40,7 +40,8 @@ This skill should explicitly mark uncertainty for:
 The final answer should try to include:
 
 - target cell or target range
-- one friendly Markdown table as the primary presentation
+- one friendly Markdown tree block
+- one friendly Markdown table as the primary detailed presentation
 - direct precedents
 - recursive dependency chain when needed
 - concise explanation in Chinese
@@ -51,21 +52,24 @@ Preferred default answer structure:
 
 - title
 - `结论：...`
-- one Markdown table
+- `依赖树：`
+- `详细依赖树：` when useful
+- one Markdown table with dynamic `L1...Ln` layer columns
 - `计算过程：`
 - formula code blocks
 
 Preferred default table columns:
 
-- `层级`
+- `L1 ... Ln`
 - `单元格`
 - `字段`
-- `value`
+- `值`
 - `说明`
 
 Important rendering rules:
 
 1. Do not put long formulas into the main table by default.
-2. Do not put ASCII tree markers like `|_` into the main table by default.
-3. Put formulas into fenced `excel` blocks after the explanation.
-4. Tree view is optional and should be separate from the main table.
+2. Do not put the full ASCII tree text into the main table cells by default.
+3. Use `|__` tree blocks before the table, not instead of the table.
+4. Put formulas into fenced `excel` blocks after the explanation.
+5. The number of layer columns should match actual depth. Use `L1 | L2` for shallow chains and expand only when needed.
