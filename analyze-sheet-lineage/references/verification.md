@@ -105,6 +105,8 @@ Required checks:
 10. Mermaid is absent unless the user explicitly asked for it or the table is insufficient.
 11. The full ASCII tree is not stuffed into the main table cells.
 12. If a tree is present, the simple tree preserves actual depth instead of flattening nested matched rows into sibling lines.
+13. The default DAG is wrapped in one fenced `text` code block.
+14. Box borders stay aligned and values do not spill outside the right frame.
 
 ## 6. Reference Example: ERP!BO2
 
@@ -116,25 +118,25 @@ Expected default shape:
 
 ```text
 订单表
-┌───────────────┐
-│ B117 订单号   │ 260506M8EXBG1U
-│ P117 SKU      │ YSD030W40L60XY
-│ N117 主货号   │ YSD028
-└───────┬───────┘
-        │
-        │ 匹配订单号 + SKU
-        ▼
+┌──────────────────────────────┐
+│ B117 订单号: 260506M8EXBG1U  │
+│ P117 SKU: YSD030W40L60XY     │
+│ N117 主货号: YSD028          │
+└──────────────┬───────────────┘
+               │
+               │ 匹配订单号 + SKU
+               ▼
 ERP!BN2
-┌───────────────┐
-│ 值: YSD028    │
-└───────┬───────┘
-        │
-        │ 清洗货号格式
-        ▼
+┌──────────────────────────────┐
+│ 值: YSD028                   │
+└──────────────┬───────────────┘
+               │
+               │ 清洗货号格式
+               ▼
 ERP!BO2
-┌───────────────┐
-│ 值: YSD028    │
-└───────────────┘
+┌──────────────────────────────┐
+│ 值: YSD028                   │
+└──────────────────────────────┘
 ```
 
 Expected optional tree:
@@ -174,6 +176,7 @@ Pass criteria:
 - source keys and matched source values are visible without reading raw formulas first
 - the output is understandable without Mermaid
 - the output looks correct as rendered Markdown, not just as plain text
+- the box frame remains intact in rendered chat screenshots, with no right-border spill
 
 ## 7. Minimal Review Checklist
 

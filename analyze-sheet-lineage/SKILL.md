@@ -52,6 +52,7 @@ Do not use this skill for pure calculation help, formatting, or business interpr
   - node title line
   - boxed node content
   - labeled arrows between steps
+- Put the default DAG inside one fenced `text` code block and keep box values inside the frame.
 - Prefer the DAG to show the main path only. Keep side branches only when they materially improve understanding.
 - The tree view is optional. Use it when the user asks for a tree, when the dependency graph branches heavily, or when plain indentation explains side branches better than the DAG.
 - The detailed table is deep explain mode, not the default artifact.

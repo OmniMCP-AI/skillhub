@@ -78,3 +78,5 @@ Important rendering rules:
 5. The number of layer columns should match actual depth. Use `L1 | L2` for shallow chains and expand only when needed.
 6. If a tree is used, the simple tree must preserve actual depth. If `A` leads to `B` and `B` leads to `C`, show nested indentation instead of listing `B` and `C` as flat siblings.
 7. In deep explain mode, the main table should include a `公式` column. Use `literal` for non-formula rows and keep full exact formulas in fenced `excel` blocks after the table when needed.
+8. The default DAG should be emitted inside one fenced `text` code block so monospace alignment is preserved.
+9. In DAG boxes, every content row must keep both left and right borders; values should stay inside the box and be padded with spaces as needed.

@@ -22,7 +22,7 @@ Good example:
 
 ## 3. Default Simple DAG
 
-After the conclusion, the default output should be one simple ASCII DAG-like block.
+After the conclusion, the default output should be one simple ASCII DAG-like block inside one fenced `text` code block.
 
 This is the primary default artifact. It should read like a lightweight flowchart in plain text, not like Mermaid and not like a raw tree dump.
 
@@ -30,32 +30,32 @@ Reference style:
 
 ```text
 订单表
-┌───────────────┐
-│ B117 订单号   │ 260506M8EXBG1U
-│ P117 SKU      │ YSD030W40L60XY
-│ N117 主货号   │ YSD028
-└───────┬───────┘
-        │
-        │ 匹配订单号 + SKU
-        ▼
+┌──────────────────────────────┐
+│ B117 订单号: 260506M8EXBG1U  │
+│ P117 SKU: YSD030W40L60XY     │
+│ N117 主货号: YSD028          │
+└──────────────┬───────────────┘
+               │
+               │ 匹配订单号 + SKU
+               ▼
 ERP!BN2
-┌───────────────┐
-│ 值: YSD028    │
-└───────┬───────┘
-        │
-        │ 清洗货号格式
-        ▼
+┌──────────────────────────────┐
+│ 值: YSD028                   │
+└──────────────┬───────────────┘
+               │
+               │ 清洗货号格式
+               ▼
 ERP!BO2
-┌───────────────┐
-│ 值: YSD028    │
-└───────┬───────┘
-        │
-        │ 查询货号分类
-        ▼
+┌──────────────────────────────┐
+│ 值: YSD028                   │
+└──────────────┬───────────────┘
+               │
+               │ 查询货号分类
+               ▼
 ERP!BR2
-┌───────────────┐
-│ 家居          │
-└───────────────┘
+┌──────────────────────────────┐
+│ 家居                         │
+└──────────────────────────────┘
 ```
 
 Rules:
@@ -67,6 +67,13 @@ Rules:
 - Prefer 3 to 6 nodes in the default DAG.
 - Keep the drawing narrow enough to render well in chat.
 - If there are side branches, mention them briefly below the DAG or switch to optional tree mode when the DAG would become noisy.
+- Always wrap the whole DAG in one fenced `text` code block.
+- Keep every value inside the box. Do not use a pseudo two-column row such as `│ 字段 │ 值` when the value may spill past the right border.
+- Prefer one full content line such as `│ 字段: 值 │` for each box row.
+- Compute the box width from the longest content line in that node, then right-pad the shorter rows with spaces.
+- Keep the left and right borders vertically aligned on every row in the same box.
+- If one content line is too long, shorten labels or compact the summary instead of letting the frame overflow.
+- Keep arrow shafts visually centered under the box when practical.
 
 ## 4. Optional Tree Views
 
