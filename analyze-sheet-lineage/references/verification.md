@@ -2,7 +2,7 @@
 
 ## Goal
 
-Verify that the workflow can read formula-based lineage correctly with `read_sheet(value_render_option="FORMULA")`, and can present the result in a friendly Markdown format that renders well in chat, with tree blocks plus a layered table.
+Verify that the workflow can read formula-based lineage correctly with `read_sheet(value_render_option="FORMULA")`, and can present the result in a friendly Markdown format that renders well in chat, with a simple DAG as the default artifact, tree as optional, and a layered table only in deep explain mode.
 
 ## 1. Single Cell
 
@@ -21,7 +21,8 @@ Pass criteria:
 - target cell is correct
 - direct precedents match visible formula references
 - recursive chain stops at literals or declared stop conditions
-- output includes a short conclusion, a simple tree, a concise layered Markdown table, calculation steps, and formula blocks
+- output includes a short conclusion, a simple DAG, calculation steps, and formula blocks
+- optional tree and deep-explain table appear only when requested or clearly helpful
 
 ## 2. Multi-Cell Range
 
@@ -39,7 +40,7 @@ Pass criteria:
 - range scope is preserved
 - each formula cell has its own direct precedents
 - shared upstream cells are de-duplicated in the recursive graph
-- tree and table stay readable and do not dump the whole range blindly
+- DAG, optional tree, and deep-explain table stay readable and do not dump the whole range blindly
 
 ## 3. Cross-Sheet References
 
@@ -57,7 +58,7 @@ Pass criteria:
 - sheet names are preserved exactly
 - lineage crosses worksheets correctly
 - no implicit sheet rewrite happens during parsing
-- the tree plus main Markdown table still stay readable after crossing worksheets
+- the default DAG remains readable after crossing worksheets; tree/table only appear when needed
 
 ## 4. Boundary Cases
 
@@ -88,27 +89,55 @@ Required checks:
 
 1. There is one short title.
 2. There is one short `结论：` paragraph.
-3. There is one simple `依赖树：` block using `|__`.
-4. There is one `详细依赖树：` block when lookup or fallback details matter.
-5. There is one Markdown table.
-6. The default table columns are business-readable and layer-aware:
+3. There is one simple DAG-like block by default.
+4. There is one simple `依赖树：` block using `|__` only when tree format is useful.
+5. There is one `详细依赖树：` block only when lookup or fallback details matter.
+6. There is one Markdown table only in deep explain mode.
+7. When present, the deep explain table columns are business-readable and layer-aware:
    - `L1 ... Ln`
    - `单元格`
    - `字段`
    - `公式`
    - `值`
    - `作用说明`
-7. There is one short `计算过程：` section.
-8. There are fenced `excel` blocks for the target formula and key direct-precedent formula.
-9. Mermaid is absent unless the user explicitly asked for it or the table is insufficient.
-10. The full ASCII tree is not stuffed into the main table cells.
-11. The simple tree preserves actual depth instead of flattening nested matched rows into sibling lines.
+8. There is one short `计算过程：` section.
+9. There are fenced `excel` blocks for the target formula and key direct-precedent formula.
+10. Mermaid is absent unless the user explicitly asked for it or the table is insufficient.
+11. The full ASCII tree is not stuffed into the main table cells.
+12. If a tree is present, the simple tree preserves actual depth instead of flattening nested matched rows into sibling lines.
 
 ## 6. Reference Example: ERP!BO2
 
 Use this as a smoke test example when possible.
 
-Expected shape:
+Expected default shape:
+
+主链路：
+
+```text
+订单表
+┌───────────────┐
+│ B117 订单号   │ 260506M8EXBG1U
+│ P117 SKU      │ YSD030W40L60XY
+│ N117 主货号   │ YSD028
+└───────┬───────┘
+        │
+        │ 匹配订单号 + SKU
+        ▼
+ERP!BN2
+┌───────────────┐
+│ 值: YSD028    │
+└───────┬───────┘
+        │
+        │ 清洗货号格式
+        ▼
+ERP!BO2
+┌───────────────┐
+│ 值: YSD028    │
+└───────────────┘
+```
+
+Expected optional tree:
 
 依赖树：
 
@@ -123,6 +152,8 @@ ERP!BO2 主货号 = YSD028
    |__ ERP!AE2 出库SPU = YSD030
 ```
 
+Expected deep explain table:
+
 | L1 | L2 | L3 | L4 | 单元格 | 字段 | 公式 | 值 | 作用说明 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `ERP!BO2` |  |  |  | `ERP!BO2` | `主货号` | `=IFERROR(IF(...),BN2)` | `YSD028` | `目标单元格，最终输出` |
@@ -136,10 +167,10 @@ ERP!BO2 主货号 = YSD028
 
 Pass criteria:
 
-- `ERP!BO2` appears in the first row and first layer column
-- `ERP!BN2` appears as the direct child row
-- the simple tree nests `订单!B117` under `ERP!B2`, and nests `订单!P117` under `ERP!AB2`
-- the main table includes a `公式` column for every row, using formula text or `literal`
+- the DAG shows the main path clearly without Mermaid
+- `ERP!BN2` appears as the key intermediate node between source and target
+- if the optional tree is used, it nests `订单!B117` under `ERP!B2`, and nests `订单!P117` under `ERP!AB2`
+- if the deep explain table is used, it includes a `公式` column for every row, using formula text or `literal`
 - source keys and matched source values are visible without reading raw formulas first
 - the output is understandable without Mermaid
 - the output looks correct as rendered Markdown, not just as plain text
@@ -151,5 +182,7 @@ Pass criteria:
 - Reads used `value_render_option="FORMULA"`
 - Read scope stayed minimal
 - Output distinguishes `direct precedents` from recursive lineage
-- Output uses tree plus layered-table Markdown as the default artifact
+- Output uses simple DAG Markdown as the default artifact
+- Tree is optional
+- Layered table is reserved for deep explain mode
 - Output includes caveats for uncertain or engine-dependent cases

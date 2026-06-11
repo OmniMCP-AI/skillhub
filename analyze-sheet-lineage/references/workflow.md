@@ -106,9 +106,9 @@ The workflow should try to produce:
 - target cell or target range
 - title
 - concise conclusion
-- one simple tree block
-- one detailed tree block when useful
-- one Markdown table as the primary artifact
+- one simple DAG block as the default artifact
+- one optional tree block when useful
+- one Markdown table only in deep explain mode
 - short calculation steps
 - formula code blocks for the target and key direct precedents
 - direct precedents
@@ -120,17 +120,20 @@ The workflow should try to produce:
 
 Optimize for chat rendering first.
 
-1. Put one simple `|__` tree before the main table.
-2. Add one detailed `|__` tree when lookup keys, matched rows, or fallback branches matter.
-3. Keep the main table simple and spreadsheet-friendly.
-4. Do not place long formulas inside the main table by default.
-5. Move long formulas into fenced `excel` code blocks after the explanation.
-6. Use business-readable field names whenever possible.
-7. The simple tree still needs true depth. If one lookup key resolves to a matched row, the matched row should be nested under that key, not shown as a flat sibling.
+1. Put one simple ASCII DAG after the conclusion by default.
+2. Use the DAG to show the main path with short action labels between nodes.
+3. Add one `|__` tree only when branching structure needs extra clarification or the user explicitly asks for tree format.
+4. Keep the main table for deep explain mode instead of the default answer.
+5. Do not place long formulas inside the main table by default.
+6. Move long formulas into fenced `excel` code blocks after the explanation.
+7. Use business-readable field names whenever possible.
+8. If a tree is included, it still needs true depth. If one lookup key resolves to a matched row, the matched row should be nested under that key, not shown as a flat sibling.
 
 ## 10. Main Table Construction Rule
 
 After resolving lineage, normalize the final answer into rows.
+
+This rule applies when deep explain mode needs a table. It is not mandatory for the default lightweight answer.
 
 Recommended row strategy:
 
@@ -162,7 +165,7 @@ Layer column rules:
 
 ## 11. Optional Tree Structure Rule
 
-The tree view should be separate from the main table and should come before the table.
+The tree view is optional and should be separate from the main table.
 
 Recommended branch labels:
 
@@ -183,11 +186,24 @@ Rules:
 
 1. Put the most important identity first: cell or range address.
 2. Use branch markers only to communicate structure, not decoration.
-3. The simple tree should always appear.
+3. The simple tree should appear only when it adds value or the user asks for it.
 4. The simple tree must preserve real parent-child depth, even when it omits some labels or notes.
 5. Add a detailed tree when it materially improves understanding.
-6. Do not try to render the entire graph with ASCII art.
+6. Do not try to render the entire graph with ASCII art if the default DAG already explains the main path clearly.
 7. Do not embed the full tree inside the main Markdown table by default.
+
+## 11A. Default DAG Rule
+
+The default lightweight view should be a simple DAG-like ASCII flow.
+
+Rules:
+
+1. Start from the most relevant source node or matched source row.
+2. Flow toward the target cell, or continue forward to the downstream consumer when that helps answer the question better.
+3. Use boxed nodes with 1 to 3 key lines inside each box.
+4. Put short action labels on the arrows.
+5. Prefer one main chain over a fully exhaustive graph.
+6. When the graph branches too much, keep the DAG focused and mention side branches separately or switch to tree/table mode.
 
 ## 12. Formula Display Rule
 

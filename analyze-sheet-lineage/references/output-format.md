@@ -20,13 +20,61 @@ Good example:
 结论：ERP!BO2 的值 YSD028 来自 ERP!BN2；ERP!BN2 又通过订单号和出库 SKU，在“订单”表中匹配到第 117 行，并取回 Parent SKU Reference No.
 ```
 
-## 3. Tree Views Before The Table
+## 3. Default Simple DAG
 
-Before the table, output tree structure first.
+After the conclusion, the default output should be one simple ASCII DAG-like block.
 
-### 3.1 Simple Tree
+This is the primary default artifact. It should read like a lightweight flowchart in plain text, not like Mermaid and not like a raw tree dump.
 
-Always include one short tree using `|__` style.
+Reference style:
+
+```text
+订单表
+┌───────────────┐
+│ B117 订单号   │ 260506M8EXBG1U
+│ P117 SKU      │ YSD030W40L60XY
+│ N117 主货号   │ YSD028
+└───────┬───────┘
+        │
+        │ 匹配订单号 + SKU
+        ▼
+ERP!BN2
+┌───────────────┐
+│ 值: YSD028    │
+└───────┬───────┘
+        │
+        │ 清洗货号格式
+        ▼
+ERP!BO2
+┌───────────────┐
+│ 值: YSD028    │
+└───────┬───────┘
+        │
+        │ 查询货号分类
+        ▼
+ERP!BR2
+┌───────────────┐
+│ 家居          │
+└───────────────┘
+```
+
+Rules:
+
+- The DAG is the default format unless the user explicitly asks for another format.
+- Show the main dependency path first.
+- Use short arrow labels such as `匹配订单号 + SKU`, `清洗货号格式`, `查询货号分类`.
+- Each node should show only the most decision-relevant fields or values.
+- Prefer 3 to 6 nodes in the default DAG.
+- Keep the drawing narrow enough to render well in chat.
+- If there are side branches, mention them briefly below the DAG or switch to optional tree mode when the DAG would become noisy.
+
+## 4. Optional Tree Views
+
+Tree is optional. Use it when the user asks for a tree view, when the graph branches heavily, or when lookup side branches matter more than the main path.
+
+### 4.1 Simple Tree
+
+When included, use one short tree using `|__` style.
 
 Example:
 
@@ -43,7 +91,7 @@ ERP!BO2 主货号 = YSD028
    |__ ERP!AE2 出库SPU = YSD030
 ```
 
-### 3.2 Detailed Tree
+### 4.2 Detailed Tree
 
 When the chain contains lookup keys, matched rows, fallback branches, or other important details, include a second tree.
 
@@ -65,14 +113,23 @@ ERP!BO2 主货号 = YSD028
 
 Rules:
 
-- The simple tree is the default and should always appear.
+- The simple tree is optional, not mandatory.
 - The simple tree must keep real structure depth. It may be shorter than the detailed tree, but it must not flatten nested relationships into one level.
-- The detailed tree is recommended when it adds real explanatory value.
+- The detailed tree is recommended only when it adds real explanatory value.
 - Keep tree lines short enough to read in chat.
 
-## 4. Main Table
+## 5. Main Table In Deep Explain Mode
 
-After the tree block, output one detailed table.
+The detailed table belongs to deep explain mode. Do not include it by default for a normal lineage answer.
+
+Use the table when:
+
+- the user asks for `deep explain`
+- the user asks for a table
+- multiple branches or fallback paths need explicit row-by-row comparison
+- formula text and node role need to be audited carefully
+
+When used, place it after the DAG or optional tree block.
 
 The table should use dynamic layer columns. The number of `L` columns depends on actual lineage depth.
 
@@ -116,7 +173,7 @@ Rules:
 - Use exact formulas for key rows when they still fit.
 - For long formulas, use a compact readable form in the table and keep the full exact formula in the later code block section.
 
-## 5. Calculation Steps
+## 6. Calculation Steps
 
 After the table, add a short `计算过程：` section with 3 to 6 numbered steps.
 
@@ -131,7 +188,9 @@ Example:
 4. ERP!BO2 再对 BN2 做清洗；当前 BN2 不包含 `-`，所以最终回退为 BN2 本身。
 ```
 
-## 6. Formulas
+If the table is omitted, the `计算过程：` section should come directly after the DAG or optional tree.
+
+## 7. Formulas
 
 Put formulas after the explanation, not inside the main table by default.
 
@@ -158,7 +217,7 @@ Rules:
 - Keep exact formulas for the target cell and the most important direct precedent.
 - Lower-level formulas may be omitted if they are just literals or add little value.
 
-## 7. Optional Mermaid
+## 8. Optional Mermaid
 
 Add Mermaid only when one of these is true:
 
@@ -167,7 +226,7 @@ Add Mermaid only when one of these is true:
 
 If Mermaid is omitted, do not apologize.
 
-## 8. Uncertainty / Caveats
+## 9. Uncertainty / Caveats
 
 Add this section only when needed.
 
@@ -183,7 +242,32 @@ Recommended wording:
 
 结论：ERP!BO2 的值 YSD028 来自 ERP!BN2；ERP!BN2 又通过订单号和出库 SKU，在“订单”表中匹配到第 117 行，并取回 Parent SKU Reference No.
 
-依赖树：
+主链路：
+
+```text
+订单表
+┌───────────────┐
+│ B117 订单号   │ 260506M8EXBG1U
+│ P117 SKU      │ YSD030W40L60XY
+│ N117 主货号   │ YSD028
+└───────┬───────┘
+        │
+        │ 匹配订单号 + SKU
+        ▼
+ERP!BN2
+┌───────────────┐
+│ 值: YSD028    │
+└───────┬───────┘
+        │
+        │ 清洗货号格式
+        ▼
+ERP!BO2
+┌───────────────┐
+│ 值: YSD028    │
+└───────────────┘
+```
+
+详细依赖树（可选）：
 
 ERP!BO2 主货号 = YSD028
 |__ ERP!BN2 主货号辅助 = YSD028
@@ -204,6 +288,8 @@ ERP!BO2 主货号 = YSD028
    |   |__ 匹配到: 订单!P117 SKU Reference No. = YSD030W40L60XY
    |__ 返回字段: 订单!N117 Parent SKU Reference No. = YSD028
    |__ 备用回退: ERP!AE2 出库SPU = YSD030
+
+深度说明表（deep explain mode）：
 
 | L1 | L2 | L3 | L4 | 单元格 | 字段 | 公式 | 值 | 作用说明 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |

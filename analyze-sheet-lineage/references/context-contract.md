@@ -40,8 +40,9 @@ This skill should explicitly mark uncertainty for:
 The final answer should try to include:
 
 - target cell or target range
-- one friendly Markdown tree block
-- one friendly Markdown table as the primary detailed presentation
+- one friendly Markdown DAG block as the default presentation
+- one friendly Markdown tree block only when useful
+- one friendly Markdown table only in deep explain mode
 - direct precedents
 - recursive dependency chain when needed
 - concise explanation in Chinese
@@ -52,13 +53,14 @@ Preferred default answer structure:
 
 - title
 - `结论：...`
-- `依赖树：`
+- one simple DAG block
+- `依赖树：` only when useful
 - `详细依赖树：` when useful
-- one Markdown table with dynamic `L1...Ln` layer columns
+- one Markdown table with dynamic `L1...Ln` layer columns only in deep explain mode
 - `计算过程：`
 - formula code blocks
 
-Preferred default table columns:
+Preferred deep-explain table columns:
 
 - `L1 ... Ln`
 - `单元格`
@@ -71,8 +73,8 @@ Important rendering rules:
 
 1. Do not put long formulas into the main table by default.
 2. Do not put the full ASCII tree text into the main table cells by default.
-3. Use `|__` tree blocks before the table, not instead of the table.
+3. Use the simple DAG as the default artifact; add `|__` tree blocks only when they improve clarity.
 4. Put formulas into fenced `excel` blocks after the explanation.
 5. The number of layer columns should match actual depth. Use `L1 | L2` for shallow chains and expand only when needed.
-6. The simple tree must preserve actual depth. If `A` leads to `B` and `B` leads to `C`, show nested indentation instead of listing `B` and `C` as flat siblings.
-7. The main table should include a `公式` column. Use `literal` for non-formula rows and keep full exact formulas in fenced `excel` blocks after the table when needed.
+6. If a tree is used, the simple tree must preserve actual depth. If `A` leads to `B` and `B` leads to `C`, show nested indentation instead of listing `B` and `C` as flat siblings.
+7. In deep explain mode, the main table should include a `公式` column. Use `literal` for non-formula rows and keep full exact formulas in fenced `excel` blocks after the table when needed.

@@ -43,24 +43,26 @@ Do not use this skill for pure calculation help, formatting, or business interpr
 - Prefer this order:
   - title
   - one-sentence conclusion
-  - one simple tree block
-  - one detailed tree block when useful
-  - one concise Markdown table
+  - one simple DAG block
+  - one optional tree block when useful
+  - one concise Markdown table only in deep explain mode
   - short calculation steps
   - formula code blocks
-- The default table should be business-readable and tree-aware.
-- Prefer dynamic layer columns such as `L1 | L2`, or `L1 | L2 | L3 | L4`, followed by `单元格 | 字段 | 公式 | 值 | 作用说明`.
-- Choose the number of `L` columns according to actual lineage depth. Do not force `L4` when only two layers exist.
-- Include one `公式` column in the main table. Use exact formulas for key formula rows and `literal` for literal rows.
+- The default diagram should be a business-readable ASCII DAG, similar to a lightweight flowchart:
+  - node title line
+  - boxed node content
+  - labeled arrows between steps
+- Prefer the DAG to show the main path only. Keep side branches only when they materially improve understanding.
+- The tree view is optional. Use it when the user asks for a tree, when the dependency graph branches heavily, or when plain indentation explains side branches better than the DAG.
+- The detailed table is deep explain mode, not the default artifact.
+- In deep explain mode, prefer dynamic layer columns such as `L1 | L2`, or `L1 | L2 | L3 | L4`, followed by `单元格 | 字段 | 公式 | 值 | 作用说明`.
+- In deep explain mode, choose the number of `L` columns according to actual lineage depth. Do not force `L4` when only two layers exist.
+- In deep explain mode, include one `公式` column in the main table. Use exact formulas for key formula rows and `literal` for literal rows.
 - If a formula is too long for the table, keep a compact readable version in the table and place the full exact formula again in the formula code block section.
-- Before the table, include a simple ASCII tree using `|__` style.
-- The simple tree must still preserve real parent-child depth. Do not flatten all upstream nodes to the same indentation level.
-- When it helps, also include a second detailed tree that shows matched source rows or fallback branches.
-- Do not put the full `|__` tree directly inside the main table cells unless the user explicitly asks for a pure text matrix.
 - Include direct precedents whenever they can be identified.
 - Include recursive lineage only when it materially helps the user.
 - Output Mermaid only when the user explicitly asks for a diagram or when the table alone is still too hard to follow.
 - If the graph would be noisy, incomplete, or misleading, skip Mermaid and say why.
 - When named ranges, spill formulas, SQL formulas, engine-specific behavior, or ambiguous deep chains are involved, explicitly mark uncertainty.
 
-Keep the final answer concise. Prefer a short explanation plus a well-rendered Markdown table over long prose.
+Keep the final answer concise. Prefer a short explanation plus a well-rendered DAG over long prose, and add the Markdown table only in deep explain mode.
