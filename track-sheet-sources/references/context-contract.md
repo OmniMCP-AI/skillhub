@@ -7,6 +7,7 @@
 ## Preferred inputs
 
 - `[selected_range=Sheet1!B2:D20]`
+- `[metadata_output=sidecar]` for MaybeAI product workbook/worksheet creation
 - explicit worksheet or cell targets from the user
 - recent tool-call records and raw tool outputs
 - session history
@@ -45,11 +46,34 @@ When deciding where a spreadsheet value came from, use this evidence order:
 
 If the final answer says something but the tool history proves a different upstream source, trust the tool history.
 
-## Output worksheet
+## Output modes
 
-This skill creates or refreshes:
+Preferred product mode:
+
+1. `metadata_output=sidecar`
+
+Fallback standalone mode:
 
 1. `source-tracking`
+
+In `metadata_output=sidecar` mode:
+
+- do not create `source-tracking`
+- do not create helper worksheets
+- do not modify workbook styles or visible cell values
+- emit normalized `cell_metadata[]`
+- after the workbook or worksheet write succeeds, call play-be cell metadata batch-upsert
+- call `provenance-feature/upsert` so the frontend can discover source tracking for `doc_id + gid`
+
+When calling play-be from Hermes/OpenClaw or another trusted creation flow, use the internal write identity:
+
+| header | value |
+| --- | --- |
+| `X-Internal-Token` | `SETTINGS.run_task_token` or the configured service token |
+| `X-User-Id` | owner user id that should own the sheet metadata |
+| `X-User-Email` | optional owner email |
+
+Use standalone worksheet mode only when the metadata backend is unavailable, the caller has no play-be write context, or the user explicitly asks for a workbook-visible audit table.
 
 It does not own `<worksheet_name>-source-confident`.
 
@@ -57,11 +81,14 @@ It does not own `<worksheet_name>-source-confident`.
 
 Allowed `source_type` values:
 
+- `database`
 - `web`
 - `api`
 - `tool`
 - `file`
+- `document`
 - `search`
+- `multimedia`
 - `llm`
 - `mixed`
 - `user`
@@ -85,6 +112,44 @@ Each audited cell should produce at least one normalized record with these field
 | `evidence_excerpt` | short snippet proving the value |
 | `retrieval_method` | how the evidence was obtained |
 | `note` | ambiguity, fallback, or verification note |
+
+## Sidecar `cell_metadata[]` contract
+
+Each audited data cell in sidecar mode emits one normalized object compatible with play-be batch-upsert.
+
+Required identity and coordinate fields:
+
+| field | meaning |
+| --- | --- |
+| `doc_id` | MaybeAI spreadsheet document id parsed from `spreadsheet_url` or creation result |
+| `gid` | worksheet gid from the target worksheet or creation result |
+| `worksheet_name` | worksheet name when known |
+| `cell` | A1 cell such as `B2` |
+| `row` | 1-based row number |
+| `col` | 1-based column number |
+
+Required provenance fields:
+
+| field | meaning |
+| --- | --- |
+| `source_type` | `database/api/tool/file/document/web/search/multimedia/llm/mixed/user` |
+| `source_refs` | array of real source references; use `[]` when no stable evidence exists |
+| `value_hash` | stable hash of the visible value at write time, used for stale detection |
+
+Recommended display and audit fields:
+
+| field | meaning |
+| --- | --- |
+| `value_preview` | short visible value preview, truncated when needed |
+| `source_date_type` | `effective_date/publish_date/modified_date/retrieved_at` when known |
+| `source_date` | ISO date or datetime string when known |
+| `evidence_excerpt` | short non-sensitive excerpt proving the value |
+| `retrieval_method` | how the evidence was obtained |
+| `note` | ambiguity, fallback, or verification note |
+
+`source_refs[]` should use only real evidence fields. Recommended keys include `type`, `title`, `url`, `file_id`, `file_name`, `api_endpoint`, `tool_name`, `field_path`, `section`, `page`, `timestamp`, `retrieved_at`, and `evidence_excerpt`. Do not fabricate URLs, fragments, file ids, field paths, source dates, or excerpts.
+
+When confidence has already been assessed by the caller, the same sidecar object may include `confidence_level`, `confidence_score`, and `confidence_reason`; otherwise omit them.
 
 ## Worksheet layout
 

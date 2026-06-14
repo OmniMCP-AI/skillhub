@@ -11,6 +11,14 @@ Usually strongest when:
 - the response field is stable and directly matches the cell value
 - the timestamp is known
 
+### `database`
+
+Usually strongest when:
+
+- the query/table context is known
+- the field and row mapping directly match the cell value
+- the extraction timestamp or data effective date is known
+
 ### `web`
 
 Usually strong when:
@@ -24,6 +32,21 @@ Usually strong when:
 
 - the file section, page, or sheet is known
 - the extracted value is exact
+
+### `document`
+
+Usually strong when:
+
+- the managed document id, section, heading, or page locator is known
+- the quoted or extracted value directly matches the cell value
+
+### `multimedia`
+
+Usually medium to strong when:
+
+- the transcript, OCR, frame, or timestamp locator is recorded
+- the extraction method is reproducible
+- confidence should be lowered when OCR/transcription quality is uncertain
 
 ### `search`
 

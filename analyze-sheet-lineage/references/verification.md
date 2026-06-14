@@ -4,6 +4,8 @@
 
 Verify that the workflow can read formula-based lineage correctly with `read_sheet(value_render_option="FORMULA")`, and can present the result in a friendly Markdown format that renders well in chat, with a simple DAG as the default artifact, tree as optional, and a layered table only in deep explain mode.
 
+When write-time sidecar metadata is available, also verify that lineage can display source/confidence metadata without treating it as a formula precedent.
+
 ## 1. Single Cell
 
 Check one target such as `Sheet1!C3`.
@@ -107,6 +109,27 @@ Required checks:
 12. If a tree is present, the simple tree preserves actual depth instead of flattening nested matched rows into sibling lines.
 13. The default DAG is wrapped in one fenced `text` code block.
 14. Box borders stay aligned and values do not spill outside the right frame.
+
+## 5A. Sidecar Metadata Review
+
+Check a target range that has play-be sidecar metadata.
+
+Steps:
+
+1. Query metadata by `doc_id + gid + cell/range`.
+2. Confirm sidecar rows match requested cells or confirmed lineage cells.
+3. Confirm header row 1 and column A are absent when default product skip rules applied during write-time metadata generation.
+4. Confirm each metadata row has `doc_id`, `gid`, `cell`, `row`, `col`, and `value_hash`.
+5. Confirm `source_refs` are real recorded evidence and are not invented during lineage analysis.
+6. Confirm every present `confidence_level` is numeric `1` through `5`.
+7. Compare visible values against `value_hash` when possible and mark stale metadata clearly.
+
+Pass criteria:
+
+- sidecar facts appear as source/confidence metadata, not direct formula precedents
+- missing metadata is reported as missing, not regenerated
+- stale metadata is caveated
+- no worksheet, helper cell, or style change is made
 
 ## 6. Reference Example: ERP!BO2
 

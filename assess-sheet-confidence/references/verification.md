@@ -4,13 +4,27 @@ Use this checklist to verify that the skill is doing a real confidence assessmen
 
 ## Acceptance criteria
 
-### A. Worksheet existence
+### A. Output target
 
-- `<worksheet_name>-source-confident` exists when requested
+- In `metadata_output=sidecar`, no `<worksheet_name>-source-confident` worksheet is created and workbook styles are unchanged.
+- In standalone fallback mode, `<worksheet_name>-source-confident` exists when requested.
+
+### A1. Sidecar metadata quality
+
+For `metadata_output=sidecar`, verify:
+
+- play-be batch-upsert completed after workbook/worksheet creation succeeded
+- `provenance-feature/upsert` completed for `doc_id + gid`
+- sidecar row count matches assessed data cells after skip rules
+- header row 1 and column A were skipped by default unless explicitly overridden
+- every row has `doc_id`, `gid`, `cell`, `row`, `col`, `value_hash`, `confidence_level`, and `confidence_reason`
+- every `confidence_level` is an integer from `1` through `5`
+- unsupported rows use low confidence and empty or explicitly weak evidence instead of fabricated sources
+- no workbook style, helper worksheet, or visible cell was changed for metadata
 
 ### B. Mirror integrity
 
-In `<worksheet_name>-source-confident`, verify:
+In standalone fallback `<worksheet_name>-source-confident`, verify:
 
 - the duplicated sheet or range has the same visible values as the source worksheet
 - the duplicated sheet or range keeps the same row and column structure for the audited scope
@@ -23,6 +37,7 @@ In `<worksheet_name>-source-confident`, verify:
 Verify:
 
 - each assessed cell has a non-empty `confidence_level`
+- sidecar `confidence_level` values are numeric `1` through `5`
 - freshness fields are present when source dates exist
 - validation fields are present when sanity review was requested
 - outliers are marked `needs_review` rather than automatically `invalid` unless a hard rule is violated

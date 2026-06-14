@@ -19,6 +19,7 @@ This is an internal explanation-layer schema. It does not need to match any back
   },
   "direct_precedents": [],
   "recursive_edges": [],
+  "sidecar_metadata": [],
   "uncertainty": [],
   "notes": []
 }
@@ -77,6 +78,42 @@ Each edge:
 ```
 
 Use edges rather than nested trees so the same node can appear in multiple paths.
+
+### `sidecar_metadata[]`
+
+Optional write-time provenance/confidence metadata for cells in the lineage graph.
+
+Each item:
+
+```json
+{
+  "ref": "Orders!C8",
+  "doc_id": "doc_123",
+  "gid": "0",
+  "cell": "C8",
+  "row": 8,
+  "col": 3,
+  "source_type": "api",
+  "source_refs": [],
+  "confidence_level": 5,
+  "confidence_score": 0.95,
+  "confidence_reason": "Direct API field matched the written value.",
+  "value_hash": "sha256:...",
+  "status": "current"
+}
+```
+
+Fields:
+
+- `ref`: sheet-qualified A1 reference when possible
+- `doc_id`, `gid`, `cell`, `row`, `col`: sidecar identity fields
+- `source_type`: `database` | `api` | `tool` | `file` | `document` | `web` | `search` | `multimedia` | `llm` | `mixed` | `user`
+- `source_refs`: real source references only; empty when unverified
+- `confidence_level`: optional integer `1` through `5`
+- `confidence_score`: optional number between `0` and `1`
+- `confidence_reason`: optional short explanation
+- `value_hash`: metadata write-time value hash
+- `status`: `current` | `stale` | `unknown`
 
 ### `uncertainty[]`
 

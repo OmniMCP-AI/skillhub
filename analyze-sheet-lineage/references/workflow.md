@@ -10,6 +10,8 @@ Shared contract:
 - Use `spreadsheet_url` to identify the document and worksheet context.
 - Read formulas with `read_sheet(value_render_option="FORMULA")`.
 - Read the minimum range needed.
+- When available, read write-time sidecar metadata by `doc_id + gid + cell/range` as supplemental provenance.
+- Do not create helper worksheets, source-tracking worksheets, confidence mirrors, or workbook style changes during lineage analysis.
 
 ## 1. Target Resolution
 
@@ -27,12 +29,14 @@ Recommended call order:
 3. Parse direct A1 references from each target formula.
 4. For every precedent not yet resolved, read only that referenced cell or range with `read_sheet(..., value_render_option="FORMULA")`.
 5. Repeat recursively until a stop condition is reached.
+6. If sidecar metadata exists, query it only for the target cells and confirmed lineage cells.
 
 Minimal principle:
 
 - Single cell target: read one cell first.
 - Range target: read only the selected rectangle first.
 - Precedent expansion: read referenced addresses only, not the whole sheet.
+- Sidecar metadata lookup: query the smallest cell/range set needed, not the whole workbook.
 
 ## 3. Direct Precedents
 
@@ -81,12 +85,31 @@ Explicitly mark uncertainty for:
 - dynamic address builders such as `ADDRESS`, `OFFSET`
 - ambiguous mixed-engine results
 - very deep chains where cost or confidence becomes poor
+- sidecar metadata whose `value_hash` no longer matches the current visible value
 
 Preferred behavior:
 
 - Keep confirmed direct precedents.
 - Label uncertain nodes as `unresolved` or `engine-dependent`.
 - Do not over-claim recursive lineage beyond what `FORMULA` text clearly supports.
+- Do not over-claim sidecar metadata as formula lineage. It is provenance or confidence context only.
+
+## 6A. Sidecar Metadata Usage
+
+Use sidecar metadata when the caller asks where a literal or generated value came from, or when formula lineage reaches a literal cell with source metadata.
+
+Supported behavior:
+
+1. Parse `doc_id` and `gid` from `spreadsheet_url` or caller context.
+2. Query play-be cell metadata for the selected cell/range and confirmed lineage cells.
+3. Match records by `doc_id`, `gid`, and A1 `cell`; use `row` and `col` to validate coordinates.
+4. Compare current visible value hash with `value_hash` when possible.
+5. Label sidecar facts as `来源元数据` or `置信度元数据`, not as formula precedents.
+6. If metadata is stale, show it as a caveat and do not use it as proof of the current value.
+7. If `source_refs` is empty, state that no stable source reference was recorded.
+8. Keep `confidence_level` as numeric `1-5`; do not convert it into a color or style action.
+
+Lineage analysis is read-only. If sidecar metadata is missing, do not create it; direct the caller to `track-sheet-sources` or `assess-sheet-confidence`.
 
 ## 7. Excelize / PG Difference Reminder
 
@@ -113,6 +136,7 @@ The workflow should try to produce:
 - formula code blocks for the target and key direct precedents
 - direct precedents
 - recursive dependency chain
+- sidecar source/confidence facts when available
 - caveats for uncertainty
 - Mermaid diagram only when explicitly useful
 

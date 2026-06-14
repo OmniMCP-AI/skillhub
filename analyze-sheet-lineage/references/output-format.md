@@ -224,6 +224,28 @@ Rules:
 - Keep exact formulas for the target cell and the most important direct precedent.
 - Lower-level formulas may be omitted if they are just literals or add little value.
 
+## 7A. Sidecar Source And Confidence Metadata
+
+Include this section only when sidecar metadata exists or the user asked for source/confidence context.
+
+Recommended shape:
+
+```md
+来源/置信度元数据：
+
+| 单元格 | source_type | confidence_level | source_refs | 状态 | 说明 |
+| --- | --- | --- | --- | --- | --- |
+| `Sheet1!B2` | `api` | `5` | `1` | `current` | Direct API field matched the written value |
+```
+
+Rules:
+
+- Keep this separate from formula precedents.
+- Report `confidence_level` as numeric `1-5`.
+- Use `source_refs` counts or short labels, not long raw payloads.
+- If `value_hash` is stale, set 状态 to `stale` and explain briefly.
+- If `source_refs` is empty, say `0` and do not invent a source.
+
 ## 8. Optional Mermaid
 
 Add Mermaid only when one of these is true:

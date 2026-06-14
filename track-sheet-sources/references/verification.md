@@ -4,13 +4,26 @@ Use this checklist to verify that the skill is doing real provenance capture.
 
 ## Acceptance criteria
 
-### A. Worksheet existence
+### A. Output target
 
-- `source-tracking` exists
+- In `metadata_output=sidecar`, no `source-tracking` worksheet is created and workbook styles are unchanged.
+- In standalone fallback mode, `source-tracking` exists.
+
+### A1. Sidecar metadata quality
+
+For `metadata_output=sidecar`, verify:
+
+- play-be batch-upsert completed after workbook/worksheet creation succeeded
+- `provenance-feature/upsert` completed for `doc_id + gid`
+- sidecar row count matches audited data cells after skip rules
+- header row 1 and column A were skipped by default unless explicitly overridden
+- every row has `doc_id`, `gid`, `cell`, `row`, `col`, `source_type`, `source_refs`, and `value_hash`
+- `cell` matches `row` and `col`
+- no workbook style, helper worksheet, or visible cell was changed for metadata
 
 ### B. Tracking table quality
 
-Verify:
+For standalone fallback mode, verify:
 
 - the header row matches the contract
 - each audited cell has at least one row

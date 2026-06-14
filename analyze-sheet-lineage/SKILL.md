@@ -1,11 +1,13 @@
 ---
 name: analyze-sheet-lineage
-description: Explains spreadsheet cell lineage, precedents, and dependency chains from a selected cell or range. Use when the user asks why a value appears, where a formula pulls from, what cells depend on what, or wants a dependency chain table for a workbook cell/range.
+description: Explains spreadsheet cell lineage, precedents, dependency chains, and available write-time sidecar provenance from a selected cell or range. Use when the user asks why a value appears, where a formula pulls from, what cells depend on what, or wants a dependency chain table for a workbook cell/range.
 ---
 
 # Analyze Sheet Lineage
 
 Use this skill for explanation-layer lineage work, not for building a new backend lineage API.
+
+When MaybeAI source/confidence sidecar metadata exists, use it as provenance context for literal cells and externally generated values. Formula lineage still comes from workbook formulas; sidecar metadata supplements source/confidence explanation and must not replace confirmed formula precedents.
 
 Shared contract: read `context-contract.md` first. It defines the input tags, the preferred selectors, the workflow boundary, and the minimum output.
 
@@ -16,6 +18,7 @@ Trigger when the user asks any of these:
 - why a cell has its value
 - which cells a formula depends on
 - upstream / downstream / precedent / dependent / lineage / dependency chain
+- sidecar provenance, source metadata, or confidence metadata for a lineage target
 - cross-sheet formula tracing
 - "draw the relationship" for a selected cell or range
 
@@ -36,6 +39,7 @@ Do not use this skill for pure calculation help, formatting, or business interpr
 - Read `output-format.md` before producing the final answer.
 - Read `lineage-json-schema.md` when you need a normalized internal lineage object for reasoning or multi-step tracing.
 - Read `workflow.md` only when present and when the task needs step-by-step execution guidance beyond the shared contract, such as recursive tracing strategy, formula parsing order, or range-expansion rules.
+- Read `verification.md` when sidecar metadata is part of the explanation or when validating formula reads.
 
 ## Output Rules
 
@@ -61,6 +65,7 @@ Do not use this skill for pure calculation help, formatting, or business interpr
 - In deep explain mode, include one `公式` column in the main table. Use exact formulas for key formula rows and `literal` for literal rows.
 - If a formula is too long for the table, keep a compact readable version in the table and place the full exact formula again in the formula code block section.
 - Include direct precedents whenever they can be identified.
+- Include sidecar source/confidence facts for literal or generated cells when available, but label them as metadata rather than formula precedents.
 - Include recursive lineage only when it materially helps the user.
 - Output Mermaid only when the user explicitly asks for a diagram or when the table alone is still too hard to follow.
 - If the graph would be noisy, incomplete, or misleading, skip Mermaid and say why.

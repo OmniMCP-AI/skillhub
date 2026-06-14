@@ -7,6 +7,7 @@
 ## Preferred inputs
 
 - `[selected_range=Sheet1!B2:D20]`
+- `[metadata_output=sidecar]` for MaybeAI product workbook/worksheet creation
 - existing `source-tracking` worksheet
 - session history or tool-call records if confidence depends on how the value was produced
 - existing source dates, links, snippets, or notes
@@ -28,12 +29,35 @@ Exception:
 
 - if the cell is a real spreadsheet error or broken generated output, keep it in scope and mark that in `note`
 
-## Output worksheets
+## Output modes
 
-This skill creates or refreshes:
+Preferred product mode:
+
+1. `metadata_output=sidecar`
+
+Fallback standalone mode:
 
 1. worksheet-local confidence mirror: `<worksheet_name>-source-confident`
 2. optionally enriches `source-tracking`
+
+In `metadata_output=sidecar` mode:
+
+- do not create `<worksheet_name>-source-confident`
+- do not create `source-tracking`
+- do not modify workbook styles or visible cell values
+- emit normalized `cell_metadata[]`
+- after the workbook or worksheet write succeeds, call play-be cell metadata batch-upsert
+- call `provenance-feature/upsert` so the frontend can discover source confidence for `doc_id + gid`
+
+When calling play-be from Hermes/OpenClaw or another trusted creation flow, use the internal write identity:
+
+| header | value |
+| --- | --- |
+| `X-Internal-Token` | `SETTINGS.run_task_token` or the configured service token |
+| `X-User-Id` | owner user id that should own the sheet metadata |
+| `X-User-Email` | optional owner email |
+
+Use standalone mirror mode only when the metadata backend is unavailable, the caller has no play-be write context, or the user explicitly asks for workbook-visible confidence coloring.
 
 `<worksheet_name>` means the worksheet resolved from `gid` or an explicit worksheet target.
 
@@ -42,7 +66,21 @@ If the preferred mirror name exceeds the worksheet-name limit, shorten it determ
 - first fallback: `<worksheet_name>-src-conf`
 - second fallback: truncate the worksheet-name prefix and keep `-src-conf`
 
-## Confidence tiers
+## Confidence levels
+
+Sidecar mode stores numeric levels:
+
+| level | label | meaning |
+| --- | --- | --- |
+| `1` | `很低` | unsupported, model-derived, or trace too weak |
+| `2` | `低` | weak evidence, estimated mapping, or strong ambiguity |
+| `3` | `中` | evidence exists but is partial, inferred, or indirect |
+| `4` | `高` | good direct evidence with minor transformation or recency risk |
+| `5` | `很高` | direct reproducible evidence with tight value match |
+
+`confidence_score` is optional and must stay between `0` and `1`.
+
+Standalone mirror mode may still use text tiers:
 
 - `very_high`
   - score `>= 0.9`
@@ -117,6 +155,45 @@ When this skill enriches `source-tracking`, it should use these fields:
 | `validation_status` | `ok/needs_review/invalid/unknown` |
 | `validation_type` | `unit/range/magnitude/outlier/cross_field_consistency/manual_review` |
 | `validation_note` | explanation of the sanity assessment |
+
+## Sidecar `cell_metadata[]` contract
+
+Each assessed data cell in sidecar mode emits one normalized object compatible with play-be batch-upsert.
+
+Required identity and coordinate fields:
+
+| field | meaning |
+| --- | --- |
+| `doc_id` | MaybeAI spreadsheet document id parsed from `spreadsheet_url` or creation result |
+| `gid` | worksheet gid from the target worksheet or creation result |
+| `worksheet_name` | worksheet name when known |
+| `cell` | A1 cell such as `B2` |
+| `row` | 1-based row number |
+| `col` | 1-based column number |
+
+Required assessment fields:
+
+| field | meaning |
+| --- | --- |
+| `confidence_level` | integer `1` to `5` |
+| `confidence_score` | optional numeric score between `0` and `1` |
+| `confidence_reason` | short reason a reviewer can understand |
+| `value_hash` | stable hash of the visible value at write time, used for stale detection |
+
+Recommended provenance and validation fields:
+
+| field | meaning |
+| --- | --- |
+| `value_preview` | short visible value preview, truncated when needed |
+| `source_type` | `database/api/tool/file/document/web/search/multimedia/llm/mixed/user` when known |
+| `source_refs` | array of real source references; use `[]` when no stable evidence exists |
+| `freshness_level` | `current/aging/stale/unknown` |
+| `freshness_note` | explanation of the freshness decision |
+| `validation_status` | `ok/needs_review/invalid/unknown` |
+| `validation_type` | `unit/range/magnitude/outlier/cross_field_consistency/manual_review` |
+| `validation_note` | explanation of the sanity assessment |
+
+Default product skip rules exclude header row 1 and column A unless explicitly overridden.
 
 ## Worksheet layout
 

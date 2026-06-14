@@ -8,6 +8,10 @@ Use this file only when source classification is not obvious from the evidence.
 
 Use when the value is supported by a directly opened webpage, PDF page, document page, or canonical article URL.
 
+### `database`
+
+Use when the value comes from a database query or durable warehouse/table result with identifiable rows, fields, or query context.
+
 ### `api`
 
 Use when the value comes from a structured API, database response, or tool result with stable fields.
@@ -20,9 +24,17 @@ Use when the tool output is the closest stable provenance surface the assistant 
 
 Use when the value comes from an uploaded file, retrieved file, spreadsheet attachment, local document, or parsed PDF/docx section.
 
+### `document`
+
+Use when the value comes from a document-like source that is not best modeled as a raw file, such as a managed knowledge-base document, doc page, or indexed document section.
+
 ### `search`
 
 Use when the value is supported only by search snippets or search results, not by an opened canonical page.
+
+### `multimedia`
+
+Use when the value comes from audio, video, image OCR, transcript timestamps, or media-derived analysis.
 
 ### `llm`
 
