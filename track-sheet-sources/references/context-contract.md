@@ -8,6 +8,10 @@
 
 - `[selected_range=Sheet1!B2:D20]`
 - `[metadata_output=sidecar]` for MaybeAI product workbook/worksheet creation
+- `[maybeai_api_token=$MAYBEAI_API_TOKEN]` for authenticated play-be API calls
+- `[created_by_run_id=<hermes_or_openclaw_run_id>]`
+- `[owner_user_id=<user_id>]` when using internal play-be metadata writes
+- `[owner_user_email=<email>]` when available
 - explicit worksheet or cell targets from the user
 - recent tool-call records and raw tool outputs
 - session history
@@ -64,8 +68,34 @@ In `metadata_output=sidecar` mode:
 - emit normalized `cell_metadata[]`
 - after the workbook or worksheet write succeeds, call play-be cell metadata batch-upsert
 - call `provenance-feature/upsert` so the frontend can discover source tracking for `doc_id + gid`
+- store metadata for the owner user id, not for the service account, so normal frontend queries can read it
+- treat `doc_id + gid + row + col` as the durable upsert identity
 
-When calling play-be from Hermes/OpenClaw or another trusted creation flow, use the internal write identity:
+Default play-be base URL:
+
+```text
+http://play-be.omnimcp.ai/
+```
+
+Use a caller-provided local or staging base URL only when the execution environment explicitly overrides it.
+
+## Authentication
+
+These play-be metadata APIs require authentication.
+
+Default authenticated mode, matching `maybeai-sheet`:
+
+```bash
+export MAYBEAI_API_TOKEN=your_token_here
+```
+
+Send this header on every play-be metadata request:
+
+```text
+Authorization: Bearer <MAYBEAI_API_TOKEN>
+```
+
+Trusted internal creation mode:
 
 | header | value |
 | --- | --- |
@@ -73,9 +103,26 @@ When calling play-be from Hermes/OpenClaw or another trusted creation flow, use 
 | `X-User-Id` | owner user id that should own the sheet metadata |
 | `X-User-Email` | optional owner email |
 
+Use one authentication mode per request. Do not send metadata as a generic service user unless the owner user id is also supplied through trusted internal headers.
+
 Use standalone worksheet mode only when the metadata backend is unavailable, the caller has no play-be write context, or the user explicitly asks for a workbook-visible audit table.
 
 It does not own `<worksheet_name>-source-confident`.
+
+## Product write-time capture flow
+
+Use this flow when Hermes/OpenClaw creates a MaybeAI workbook or worksheet:
+
+1. Build a creation-context map while collecting data, before writing the sheet.
+2. For each future data cell, keep `source_type`, `source_refs`, evidence excerpt, source date, retrieval method, and the original visible value.
+3. Write the workbook/worksheet through the normal MaybeAI Sheet path.
+4. Read the write result and resolve `doc_id`, `gid`, and worksheet name.
+5. Convert the creation-context map to `cell_metadata[]` with A1 coordinates and `value_hash`.
+6. Batch-upsert to play-be.
+7. Upsert feature config with `source_tracking_enabled=true`.
+8. Query back representative cells or the target range before claiming the overlay is available.
+
+Do not derive provenance from frontend edits, pasted values, or later user updates in the current product plan. If the visible value changes after creation, the frontend may show stale metadata by comparing `value_hash`, but this skill should not repair that metadata unless a new AI-assisted creation/rewrite flow is run.
 
 ## Source taxonomy
 
@@ -146,10 +193,69 @@ Recommended display and audit fields:
 | `evidence_excerpt` | short non-sensitive excerpt proving the value |
 | `retrieval_method` | how the evidence was obtained |
 | `note` | ambiguity, fallback, or verification note |
+| `created_by_run_id` | Hermes/OpenClaw run/session id when available |
+| `metadata_version` | sidecar schema version, currently `1` |
 
-`source_refs[]` should use only real evidence fields. Recommended keys include `type`, `title`, `url`, `file_id`, `file_name`, `api_endpoint`, `tool_name`, `field_path`, `section`, `page`, `timestamp`, `retrieved_at`, and `evidence_excerpt`. Do not fabricate URLs, fragments, file ids, field paths, source dates, or excerpts.
+`source_refs[]` should use only real evidence fields. Recommended keys include `source_id`, `source_type`, `title`, `url`, `file_id`, `file_name`, `api_endpoint`, `tool_name`, `tool_role`, `upstream_source_type`, `field_path`, `section`, `page`, `timestamp`, `retrieved_at`, `excerpt`, and `evidence_excerpt`. Do not fabricate URLs, fragments, file ids, field paths, source dates, or excerpts.
+
+Tool/source rule:
+
+- row-level `source_type` should describe the upstream business/data source, not merely the tool that wrote the cell
+- use `source_refs[].source_type="tool"` only to preserve the execution method
+- use `source_refs[].tool_role` for writer/calculator/extractor/searcher/api_client/database_client
+- use `source_refs[].upstream_source_type` when the tool's input source is known, for example `synthetic`, `llm`, `web`, `api`, `file`, or `database`
 
 When confidence has already been assessed by the caller, the same sidecar object may include `confidence_level`, `confidence_score`, and `confidence_reason`; otherwise omit them.
+
+## Play-be request shape
+
+Batch metadata write:
+
+```json
+{
+  "doc_id": "6a2e9066d2e8a62c0082e081",
+  "gid": "0",
+  "items": [
+    {
+      "worksheet_name": "ConfidenceE2E",
+      "cell": "B2",
+      "row": 2,
+      "col": 2,
+      "value_preview": "FP&A Lead Agent",
+      "value_hash": "sha256:<hash>",
+      "source_type": "llm",
+      "source_refs": [
+        {
+          "source_type": "tool",
+          "tool_name": "openpyxl",
+          "tool_role": "workbook_writer",
+          "upstream_source_type": "synthetic",
+          "section": "build_report.py synthetic financial model",
+          "evidence_excerpt": "FP&A Lead Agent generated as demo workbook content"
+        }
+      ],
+      "evidence_excerpt": "FP&A Lead Agent",
+      "metadata_version": 1,
+      "created_by_run_id": "run_123"
+    }
+  ]
+}
+```
+
+Feature config write:
+
+```json
+{
+  "doc_id": "6a2e9066d2e8a62c0082e081",
+  "gid": "0",
+  "source_tracking_enabled": true,
+  "source_confidence_enabled": false,
+  "capture_mode": "write_time",
+  "ignore_header_rows": 1,
+  "ignore_first_columns": 1,
+  "metadata_version": 1
+}
+```
 
 ## Worksheet layout
 

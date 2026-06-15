@@ -1,6 +1,12 @@
 ---
 name: track-sheet-sources
 description: Tracks spreadsheet value provenance and writes source metadata with source type, links, section locators, evidence snippets, retrieval method, and source dates. Use when the user wants to know where sheet values came from, attach citations to cells, emit write-time sidecar metadata, or create or refresh a source-tracking worksheet. This skill focuses on provenance, not confidence coloring.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MAYBEAI_API_TOKEN
+    primaryEnv: MAYBEAI_API_TOKEN
 ---
 
 # Track Sheet Sources
@@ -8,6 +14,22 @@ description: Tracks spreadsheet value provenance and writes source metadata with
 Use this skill when the goal is source provenance for spreadsheet values. It is for OpenClaw, Hermes, or any AI assistant that can inspect execution context such as tool-call traces, session history, attached citations, uploaded files, and opened pages.
 
 Primary dependency: use the `maybeai-sheet` skill and its existing worksheet read/write APIs. For MaybeAI product-created workbooks or worksheets, prefer `metadata_output=sidecar` and write metadata to play-be after the workbook/worksheet write succeeds.
+
+Product sidecar target:
+
+- play-be base URL: `http://play-be.omnimcp.ai/`
+- feature config collection: `sheet_provenance_feature_config`
+- cell metadata collection: `sheet_cell_metadata`
+- feature endpoint: `POST http://play-be.omnimcp.ai/api/v1/sheet/provenance-feature/upsert`
+- metadata endpoint: `POST http://play-be.omnimcp.ai/api/v1/sheet/cell-metadata/batch-upsert`
+
+Authentication:
+
+- default external/authenticated mode: set `MAYBEAI_API_TOKEN` and send `Authorization: Bearer <MAYBEAI_API_TOKEN>`
+- trusted Hermes/OpenClaw internal mode: send `X-Internal-Token`, `X-User-Id`, and optional `X-User-Email`
+- metadata must be written as the sheet owner user; otherwise the frontend owner query will not see it
+
+This skill is primarily a write-time capture skill. Hermes/OpenClaw should capture provenance while creating the workbook/worksheet, then persist the sidecar after the sheet write returns `doc_id` and `gid`. Do not ask the frontend to infer provenance from later edits.
 
 Shared contract: read `context-contract.md` first. It defines the required inputs, the base `source-tracking` schema, and the non-fabrication rules.
 
@@ -46,6 +68,7 @@ Use `assess-sheet-confidence` for confidence, freshness, and sanity scoring.
 2. Prefer `selected_range` as the audit scope. If absent, audit the active worksheet's used range only when the user clearly asked for whole-sheet coverage.
 3. Ignore blank cells, `N/A`, `NA`, `null`, `--`, or similar placeholders unless the cell itself is a real error output that should be tracked.
 4. Reconstruct provenance from the actual assistant workflow whenever possible:
+   - creation run id or session id
    - recent tool-call records
    - tool outputs
    - session history
@@ -71,9 +94,10 @@ Use `assess-sheet-confidence` for confidence, freshness, and sanity scoring.
    - emit multiple rows for the same cell, or
    - classify it as `mixed` and explain the composition in `note`.
 13. In sidecar mode, after the worksheet/workbook write succeeds, call play-be cell metadata batch-upsert and provenance-feature/upsert. If either upsert fails, report partial completion and do not claim overlay metadata is available.
-14. In standalone worksheet mode, use `maybeai-sheet` write APIs only.
-15. After writing, verify the chosen output target: sidecar row counts and feature config for sidecar mode, or read `source-tracking` back for standalone mode.
-16. If a richer `source-tracking` table already exists, preserve extra non-provenance columns when feasible instead of deleting them blindly.
+14. If `assess-sheet-confidence` is also running in the same creation flow, merge provenance and confidence fields into the same `cell_metadata[]` objects and perform one batch-upsert when practical. Do not write two conflicting records for the same `doc_id + gid + row + col`.
+15. In standalone worksheet mode, use `maybeai-sheet` write APIs only.
+16. After writing, verify the chosen output target: sidecar row counts and feature config for sidecar mode, or read `source-tracking` back for standalone mode.
+17. If a richer `source-tracking` table already exists, preserve extra non-provenance columns when feasible instead of deleting them blindly.
 
 ## Output Rules
 

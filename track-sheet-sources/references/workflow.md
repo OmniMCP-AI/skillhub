@@ -35,13 +35,15 @@ For each target cell, capture the minimum viable provenance:
 - short evidence snippet
 - retrieval method
 - note
+- tool role and upstream source type when a tool participated in creation
 
 Evidence priority:
 
 1. direct API response or direct webpage
 2. opened canonical page after search
 3. search snippet only
-4. model inference
+4. user-provided instruction or uploaded file
+5. model inference or synthetic/demo generation
 
 Rules:
 
@@ -50,6 +52,7 @@ Rules:
 - If the only known timestamp is when the assistant fetched the data, record it as `retrieved_at`.
 - If there is no real source link, keep it blank.
 - If multiple evidence items exist for one cell, keep one primary row and add extra rows only when they materially help auditing.
+- If a tool wrote the workbook, classify the cell by the data's upstream source. Keep the tool in `source_refs[]` as `tool_role=workbook_writer` or `tool_role=calculator`; do not set every row to `source_type=tool`.
 
 ## Step 3: Normalize records
 
@@ -61,13 +64,19 @@ Normalize each cell into the base `source-tracking` fields:
 Source classification guidance:
 
 - `api`: direct API response or API-backed tool output
-- `tool`: deterministic tool output not better classified as API or file
+- `tool`: deterministic tool output only when no deeper upstream source is recoverable
 - `file`: uploaded or retrieved file content
 - `web`: opened canonical webpage or PDF
 - `search`: search snippet only
-- `llm`: model synthesis without direct evidence
+- `llm`: model synthesis, synthetic/demo data, or unsupported assistant-generated values
 - `mixed`: multiple real upstream sources
 - `user`: explicitly provided by the user
+
+Tool classification guardrail:
+
+- `tool` is a fallback source type, not a default.
+- For script-generated Excel files, use `llm` for synthetic assumptions, `file` for uploaded input files, `api` for API responses, `web` for opened public pages, and `database` for database query results.
+- Preserve the tool execution in `source_refs[]` using `tool_name`, `tool_role`, `upstream_source_type`, `section`, and `evidence_excerpt`.
 
 For `metadata_output=sidecar`, also normalize each cell into `cell_metadata[]` with:
 
@@ -76,6 +85,19 @@ For `metadata_output=sidecar`, also normalize each cell into `cell_metadata[]` w
 - `value_preview`, `value_hash`
 - `source_type`, `source_refs`
 - optional `source_date_type`, `source_date`, `evidence_excerpt`, `retrieval_method`, `note`
+
+Recommended `source_refs[]` for generated workbooks:
+
+```json
+{
+  "source_type": "tool",
+  "tool_name": "openpyxl",
+  "tool_role": "workbook_writer",
+  "upstream_source_type": "synthetic",
+  "section": "build_report.py synthetic model",
+  "evidence_excerpt": "demo financial model generated from user request"
+}
+```
 
 Skip header row 1 and column A by default for product-generated sidecar metadata unless the caller explicitly includes them as data cells.
 
@@ -91,8 +113,13 @@ Required behavior:
 - do not create `source-tracking`
 - do not change workbook styles
 - after the worksheet/workbook write succeeds, call play-be cell metadata batch-upsert with `cell_metadata[]`
-- call `provenance-feature/upsert` for `doc_id + gid` with source tracking enabled
+- call `provenance-feature/upsert` for `doc_id + gid` with `source_tracking_enabled=true`
+- preserve the existing confidence flag when known; if this creation flow also writes confidence metadata, send `source_confidence_enabled=true` in the same upsert
 - report partial completion if workbook creation succeeds but metadata upsert fails
+
+The feature upsert is not optional. The frontend uses `sheet_provenance_feature_config` to decide whether to show source/confidence menu options and whether querying metadata is meaningful for the current worksheet.
+
+Because the upsert payload contains both feature booleans, do not accidentally turn confidence off when enabling source tracking. If this skill is not also writing confidence metadata, first call `provenance-feature/detail` or use the creation flow's known feature state, then preserve `source_confidence_enabled`.
 
 ### Fallback: standalone worksheet
 
@@ -112,8 +139,19 @@ Preferred API pattern for sidecar mode:
 2. capture the returned `doc_id`, `gid`, and worksheet name
 3. build normalized `cell_metadata[]`
 4. call play-be batch-upsert for cell metadata with `X-Internal-Token`, `X-User-Id`, and optional `X-User-Email`
-5. call play-be `provenance-feature/upsert` with the same internal headers
+5. call play-be `provenance-feature/upsert` with the same internal headers and `source_tracking_enabled=true`
 6. query or otherwise verify sidecar row counts
+
+Endpoint summary:
+
+All endpoints in this table require either `Authorization: Bearer <MAYBEAI_API_TOKEN>` or trusted internal headers.
+
+| action | endpoint | required result |
+| --- | --- | --- |
+| write metadata | `POST http://play-be.omnimcp.ai/api/v1/sheet/cell-metadata/batch-upsert` | `upserted_count` equals intended metadata row count |
+| turn on source tracking | `POST http://play-be.omnimcp.ai/api/v1/sheet/provenance-feature/upsert` | returned config has `source_tracking_enabled=true` |
+| verify metadata | `POST http://play-be.omnimcp.ai/api/v1/sheet/cell-metadata/query` | representative cells return expected source refs |
+| verify feature | `POST http://play-be.omnimcp.ai/api/v1/sheet/provenance-feature/detail` | returned config matches target `doc_id + gid` |
 
 Preferred API pattern for standalone worksheet mode:
 
@@ -134,6 +172,7 @@ For sidecar mode, confirm:
 4. every row has `doc_id`, `gid`, `cell`, `row`, `col`, `source_type`, `source_refs`, and `value_hash`
 5. `source_refs` contain only real evidence and no fabricated URLs, fragments, field paths, or dates
 6. `provenance-feature/upsert` enabled source tracking for the target `doc_id + gid`
+7. `provenance-feature/detail` returns `source_tracking_enabled=true` for the same owner user, `doc_id`, and `gid`
 
 For standalone worksheet mode:
 

@@ -1,6 +1,12 @@
 ---
 name: assess-sheet-confidence
 description: Assesses spreadsheet value confidence, freshness, and sanity, and emits confidence metadata or creates a worksheet-local confidence mirror with colored cells. Use when the user wants write-time sidecar confidence metadata, confidence grading, freshness warnings, outlier or unit review, or a source-confident style worksheet. This skill focuses on scoring and validation, not detailed provenance capture.
+metadata:
+  openclaw:
+    requires:
+      env:
+        - MAYBEAI_API_TOKEN
+    primaryEnv: MAYBEAI_API_TOKEN
 ---
 
 # Assess Sheet Confidence
@@ -14,6 +20,22 @@ Use this skill when the goal is confidence assessment for spreadsheet values. It
 - worksheet-local confidence mirrors such as `<worksheet_name>-source-confident` as fallback
 
 Primary dependency: use the `maybeai-sheet` skill and its existing read/write/style APIs. For MaybeAI product-created workbooks or worksheets, prefer `metadata_output=sidecar` and write confidence metadata to play-be after the workbook/worksheet write succeeds.
+
+Product sidecar target:
+
+- play-be base URL: `http://play-be.omnimcp.ai/`
+- feature config collection: `sheet_provenance_feature_config`
+- cell metadata collection: `sheet_cell_metadata`
+- feature endpoint: `POST http://play-be.omnimcp.ai/api/v1/sheet/provenance-feature/upsert`
+- metadata endpoint: `POST http://play-be.omnimcp.ai/api/v1/sheet/cell-metadata/batch-upsert`
+
+Authentication:
+
+- default external/authenticated mode: set `MAYBEAI_API_TOKEN` and send `Authorization: Bearer <MAYBEAI_API_TOKEN>`
+- trusted Hermes/OpenClaw internal mode: send `X-Internal-Token`, `X-User-Id`, and optional `X-User-Email`
+- metadata must be written as the sheet owner user; otherwise the frontend owner query will not see it
+
+This skill is primarily a write-time assessment skill. Hermes/OpenClaw should score confidence from the same creation context used to write the workbook/worksheet, then persist the sidecar after the sheet write returns `doc_id` and `gid`. The frontend only renders or hides the overlay; it does not create or repair confidence metadata in the current plan.
 
 Shared contract: read `context-contract.md` first. It defines the inputs, scoring fields, confidence mirror rules, and worksheet contract.
 
@@ -76,11 +98,12 @@ Use `analyze-sheet-lineage` for formula dependency tracing.
 11. Default to `metadata_output=sidecar` when the caller is creating a MaybeAI workbook or worksheet for the product UI. In sidecar mode, do not create `<worksheet_name>-source-confident`, do not create `source-tracking`, do not modify workbook styles, and do not write helper cells.
 12. Use standalone mirror mode only as a fallback when play-be metadata APIs are unavailable or the user explicitly asks for workbook-visible confidence coloring.
 13. In sidecar mode, emit confidence as numeric `confidence_level` 1-5, not only text tiers. `1` is very low and `5` is very high.
-14. In sidecar mode, after the worksheet/workbook write succeeds, call play-be cell metadata batch-upsert and `provenance-feature/upsert`. If either upsert fails, report partial completion.
+14. In sidecar mode, after the worksheet/workbook write succeeds, call play-be cell metadata batch-upsert and `provenance-feature/upsert` with source confidence enabled. If either upsert fails, report partial completion.
 15. In standalone mode, create or refresh `<worksheet_name>-source-confident` as a pure mirror plus confidence coloring only.
 16. When useful in standalone mode, enrich `source-tracking` with confidence, freshness, and validation columns. Do not erase existing provenance columns.
 17. If the write path coerces visible strings like percentages, currencies, or dates into raw numbers, reapply display formats so the mirror still looks like the source.
 18. After writing, verify the chosen output target: sidecar row counts and feature config for sidecar mode, or read affected worksheets back for standalone mode.
+19. If `track-sheet-sources` is also running in the same creation flow, merge provenance and confidence fields into the same `cell_metadata[]` objects and perform one batch-upsert when practical. Do not overwrite valid source fields with `unknown` during confidence-only scoring.
 
 ## Output Rules
 
