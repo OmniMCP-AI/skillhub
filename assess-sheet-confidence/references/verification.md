@@ -7,7 +7,7 @@ Use this checklist to verify that the skill is doing a real confidence assessmen
 ### A. Output target
 
 - In `metadata_output=sidecar`, no `<worksheet_name>-source-confident` worksheet is created and workbook styles are unchanged.
-- In standalone fallback mode, `<worksheet_name>-source-confident` exists when requested.
+- No `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, helper worksheet, or visible metadata worksheet is created in product mode.
 
 ### A1. Sidecar metadata quality
 
@@ -47,17 +47,7 @@ For product sidecar mode, verify that:
 - `ignore_header_rows` and `ignore_first_columns` match the cells omitted from metadata
 - if source metadata is not written, `source_tracking_enabled` remains false unless a previous verified config should be preserved
 
-### B. Mirror integrity
-
-In standalone fallback `<worksheet_name>-source-confident`, verify:
-
-- the duplicated sheet or range has the same visible values as the source worksheet
-- the duplicated sheet or range keeps the same row and column structure for the audited scope
-- percentages, currencies, dates, and other obvious display formats still look like the source sheet after the copy
-- cells are colored by confidence tier, not by source type
-- no helper text, legend blocks, or raw hex strings were written into visible worksheet cells
-
-### C. Assessment quality
+### B. Assessment quality
 
 Verify:
 
@@ -69,7 +59,7 @@ Verify:
 - unsupported rows fall to `very_low` rather than being overstated
 - tool-generated cells are not all assigned the same confidence merely because the workbook was written by one script
 
-### C1. Synthetic/demo anti-regression
+### B1. Synthetic/demo anti-regression
 
 For simulated reports, mock data, demo workbooks, or script-generated Excel files, sample cells across sheet types and verify:
 
@@ -80,23 +70,10 @@ For simulated reports, mock data, demo workbooks, or script-generated Excel file
 - real externally sourced values can be `4` or `5`
 - one single level, especially all `2`, is rejected unless the workbook genuinely contains only one claim type
 
-### D. Read-back verification
+### C. Sidecar read-back verification
 
 After writing, read the affected worksheets back and confirm:
 
 - representative rows match expected visible values
 - representative cells have the expected confidence tier
-- any enriched `source-tracking` columns were written as expected
-
-## Minimal expected mirror behavior
-
-| check | expectation |
-| --- | --- |
-| worksheet name | `Supply Chain Latest-source-confident` |
-| duplicated values | same as the source sheet for the audited scope |
-| row/column positions | same as source sheet for the audited scope |
-| very_high label | `很高` with green fill |
-| high label | `高` with light green fill |
-| medium label | `中` with yellow fill |
-| low label | `低` with orange fill |
-| very_low label | `很低` with red fill |
+- feature config is enabled for the same `doc_id + gid`

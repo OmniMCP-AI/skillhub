@@ -5,8 +5,8 @@ Use this structure for the final answer after the workbook write is complete.
 ## 1. Summary
 
 - `scope`: audited worksheet/range
-- `metadata_output`: `sidecar` or `standalone_mirror`
-- `created_or_updated`: play-be sidecar metadata and provenance feature config, or `<worksheet_name>-source-confident` and any enriched worksheets
+- `metadata_output`: `sidecar`
+- `created_or_updated`: play-be sidecar metadata and provenance feature config
 - `feature_config`: whether `source_confidence_enabled` is on for the target `doc_id + gid`
 - `confidence_legend`: readable labels only, for example `很高 / 高 / 中 / 低 / 很低`
 - `freshness_summary`: current / aging / stale / unknown
@@ -21,7 +21,6 @@ Use a compact Markdown table when useful:
 | --- | --- |
 | audited_cells | 12 |
 | sidecar_rows_written | 12 |
-| mirror_cells_written | 0 |
 | source_confidence_enabled | true |
 | very_high_confidence | 5 |
 | high_confidence | 2 |
@@ -40,9 +39,7 @@ Use a compact Markdown table when useful:
 
 Example:
 
-- `metadata_output=sidecar`: wrote 12 confidence metadata rows to play-be and enabled source confidence for the worksheet through `http://play-be.omnimcp.ai/api/v1/sheet/provenance-feature/upsert`; no mirror worksheet or style changes were created
-- `Supply Chain Latest-source-confident`: duplicated the source worksheet content and colored the duplicated cells by confidence
-- `source-tracking`: refreshed confidence, freshness, and validation columns for the audited rows
+- `metadata_output=sidecar`: wrote 12 confidence metadata rows to play-be and enabled source confidence for the worksheet through `http://play-be.omnimcp.ai/api/v1/sheet/provenance-feature/upsert`; no mirror worksheet, `SourceMeta`, helper worksheet, or style changes were created
 
 ## 4. Risks or unresolved cells
 

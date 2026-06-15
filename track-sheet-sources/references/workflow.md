@@ -4,12 +4,12 @@ This workflow assumes the agent can already access the workbook and can use the 
 
 ## Scope
 
-This skill supports play-be sidecar metadata in product write-time flows and keeps the standalone `source-tracking` worksheet as a fallback. It explains how an agent should:
+This skill supports play-be sidecar metadata in product write-time flows. It explains how an agent should:
 
 1. resolve the audit scope
 2. reconstruct provenance per cell
 3. normalize source records
-4. write sidecar metadata or fallback `source-tracking`
+4. write sidecar metadata
 5. verify the metadata/write result
 
 ## Step 1: Resolve the audit scope
@@ -56,7 +56,7 @@ Rules:
 
 ## Step 3: Normalize records
 
-Normalize each cell into the base `source-tracking` fields:
+Normalize each cell into base provenance fields. These fields are compatible with the legacy `source-tracking` table, but product mode must write them to play-be sidecar metadata, not to a worksheet:
 
 | worksheet_name | cell | value | source_type | source_link | source_section | source_date_type | source_date | evidence_excerpt | retrieval_method | note |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -101,9 +101,7 @@ Recommended `source_refs[]` for generated workbooks:
 
 Skip header row 1 and column A by default for product-generated sidecar metadata unless the caller explicitly includes them as data cells.
 
-## Step 4: Materialize sidecar metadata or fallback worksheet
-
-### Preferred: `metadata_output=sidecar`
+## Step 4: Materialize sidecar metadata
 
 Use this mode when the assistant created or is creating the product worksheet/workbook.
 
@@ -111,6 +109,7 @@ Required behavior:
 
 - write the worksheet/workbook first using the normal MaybeAI Sheet path
 - do not create `source-tracking`
+- do not create `SourceMeta`, `底稿-SourceMeta`, hidden helper worksheets, or visible metadata worksheets
 - do not change workbook styles
 - after the worksheet/workbook write succeeds, call play-be cell metadata batch-upsert with `cell_metadata[]`
 - call `provenance-feature/upsert` for `doc_id + gid` with `source_tracking_enabled=true`
@@ -121,15 +120,7 @@ The feature upsert is not optional. The frontend uses `sheet_provenance_feature_
 
 Because the upsert payload contains both feature booleans, do not accidentally turn confidence off when enabling source tracking. If this skill is not also writing confidence metadata, first call `provenance-feature/detail` or use the creation flow's known feature state, then preserve `source_confidence_enabled`.
 
-### Fallback: standalone worksheet
-
-Create or refresh a flat audit table only when sidecar output is unavailable or explicitly not requested.
-
-Preferred write behavior:
-
-- if the sheet does not exist, create it with the base header
-- if the sheet exists and already has extra columns, preserve those columns when feasible
-- update or overwrite the audited row set without deleting unrelated rows unless the user explicitly asked for a full rebuild
+Legacy workbook-visible audit tables are outside the product path. Create them only if the user explicitly asks for standalone workbook-visible output, and do not present them as MaybeAI overlay metadata.
 
 ## Step 5: Write with MaybeAI Sheet APIs
 
@@ -153,15 +144,6 @@ All endpoints in this table require either `Authorization: Bearer <MAYBEAI_API_T
 | verify metadata | `POST http://play-be.omnimcp.ai/api/v1/sheet/cell-metadata/query` | representative cells return expected source refs |
 | verify feature | `POST http://play-be.omnimcp.ai/api/v1/sheet/provenance-feature/detail` | returned config matches target `doc_id + gid` |
 
-Preferred API pattern for standalone worksheet mode:
-
-1. `list_worksheets`
-2. `read_sheet` for the target scope
-3. if `source-tracking` is missing, `write_new_worksheet`
-4. otherwise `update_range` for exact table writes
-5. `batch_set_cell_style` for header emphasis when useful
-6. `read_sheet` to verify
-
 ## Step 6: Verify output
 
 For sidecar mode, confirm:
@@ -173,16 +155,7 @@ For sidecar mode, confirm:
 5. `source_refs` contain only real evidence and no fabricated URLs, fragments, field paths, or dates
 6. `provenance-feature/upsert` enabled source tracking for the target `doc_id + gid`
 7. `provenance-feature/detail` returns `source_tracking_enabled=true` for the same owner user, `doc_id`, and `gid`
-
-For standalone worksheet mode:
-
-Read back `source-tracking` and confirm:
-
-1. worksheet exists
-2. expected header row exists
-3. representative audit rows match expected values
-4. no fake `#fragment` was written
-5. placeholder cells were skipped unless they were true error outputs
+8. no `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, or helper worksheet was created
 
 If any of these fail, fix the worksheet before finalizing.
 
@@ -192,8 +165,7 @@ Keep the final response short:
 
 - audited scope
 - metadata output mode
-- created worksheets, if standalone fallback was used
-- row count written to sidecar or `source-tracking`
+- row count written to sidecar
 - count by source type
 - date coverage
 - verification result

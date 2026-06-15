@@ -50,19 +50,16 @@ When deciding where a spreadsheet value came from, use this evidence order:
 
 If the final answer says something but the tool history proves a different upstream source, trust the tool history.
 
-## Output modes
+## Output mode
 
-Preferred product mode:
+Product mode:
 
 1. `metadata_output=sidecar`
-
-Fallback standalone mode:
-
-1. `source-tracking`
 
 In `metadata_output=sidecar` mode:
 
 - do not create `source-tracking`
+- do not create `SourceMeta`, `底稿-SourceMeta`, or visible metadata worksheets
 - do not create helper worksheets
 - do not modify workbook styles or visible cell values
 - emit normalized `cell_metadata[]`
@@ -105,7 +102,7 @@ Trusted internal creation mode:
 
 Use one authentication mode per request. Do not send metadata as a generic service user unless the owner user id is also supplied through trusted internal headers.
 
-Use standalone worksheet mode only when the metadata backend is unavailable, the caller has no play-be write context, or the user explicitly asks for a workbook-visible audit table.
+Do not use standalone worksheet mode for MaybeAI product documents. If the user explicitly asks for a workbook-visible audit table, treat it as a legacy/export-only request and make clear that it is not the product overlay source.
 
 It does not own `<worksheet_name>-source-confident`.
 
@@ -257,9 +254,13 @@ Feature config write:
 }
 ```
 
-## Worksheet layout
+## Legacy worksheet layout
+
+The following layout is legacy-only and must not be created during MaybeAI product workbook generation unless the user explicitly asks for a workbook-visible audit table.
 
 ### `source-tracking`
+
+Do not create this worksheet for MaybeAI product documents.
 
 Minimum base header:
 

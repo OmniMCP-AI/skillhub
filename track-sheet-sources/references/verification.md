@@ -7,7 +7,7 @@ Use this checklist to verify that the skill is doing real provenance capture.
 ### A. Output target
 
 - In `metadata_output=sidecar`, no `source-tracking` worksheet is created and workbook styles are unchanged.
-- In standalone fallback mode, `source-tracking` exists.
+- No `SourceMeta`, `底稿-SourceMeta`, helper worksheet, or visible metadata worksheet is created in product mode.
 
 ### A1. Sidecar metadata quality
 
@@ -46,19 +46,7 @@ For product sidecar mode, verify that:
 - `ignore_header_rows` and `ignore_first_columns` match the cells omitted from metadata
 - if confidence metadata is not written, `source_confidence_enabled` remains false unless a previous verified config should be preserved
 
-### B. Tracking table quality
-
-For standalone fallback mode, verify:
-
-- the header row matches the contract
-- each audited cell has at least one row
-- blank and placeholder cells were skipped unless they were true error outputs
-- `source_type` is never blank
-- `source_link` is blank rather than fabricated when missing
-- `source_section` carries paragraph, heading, or field locator when available
-- `source_date_type` and `source_date` are present when the source exposes them
-
-### C. Hallucination control
+### B. Hallucination control
 
 Verify:
 
@@ -68,7 +56,7 @@ Verify:
 - no fake URL fragments were created
 - no fake source dates were written
 
-### C1. Tool-source anti-regression
+### B1. Tool-source anti-regression
 
 For script-generated or tool-generated workbooks, sample at least 10 cells across different sheets and verify:
 
@@ -77,18 +65,10 @@ For script-generated or tool-generated workbooks, sample at least 10 cells acros
 - search, web, file, api, database, llm, and user sources are not collapsed into `tool`
 - source type distribution is explained in the final response when one source type exceeds 80%
 
-### D. Read-back verification
+### C. Sidecar read-back verification
 
-After writing, read `source-tracking` back and confirm:
+After writing, query play-be sidecar metadata and confirm:
 
-- header cells are present
 - row counts match the intended write
 - representative audit rows match expected values
-
-## Minimal expected `source-tracking` sample
-
-| worksheet_name | cell | value | source_type | source_link | source_section | source_date_type | source_date | evidence_excerpt | retrieval_method | note |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `Sheet1` | `B2` | `123` | `api` | `https://api.example.com/orders/1` | `$.data.order_id` | `effective_date` | `2026-06-10` | `order_id = 123` | `api call` | `` |
-| `Sheet1` | `C2` | `ACME` | `web` | `https://example.com/product/acme` | `Specs > Brand` | `publish_date` | `2025-11-03` | `Brand: ACME` | `opened page` | `normalized casing` |
-| `Sheet1` | `D2` | `2025 estimate` | `llm` | `` | `` | `` | `` | `` | `llm synthesis` | `no direct source found` |
+- feature config is enabled for the same `doc_id + gid`

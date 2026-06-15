@@ -9,8 +9,8 @@ This skill explains how an agent should:
 1. resolve the assessment scope
 2. derive confidence inputs
 3. score confidence, freshness, and sanity
-4. materialize sidecar metadata or fallback `<worksheet_name>-source-confident`
-5. optionally enrich `source-tracking` only in standalone mode
+4. materialize sidecar metadata
+5. verify sidecar metadata and feature config
 6. verify the metadata/write result
 
 ## Step 1: Resolve the assessment scope
@@ -97,9 +97,7 @@ Use conservative checks:
 - `outlier`: unusual values worth review, but not automatically wrong
 - `cross_field_consistency`: mismatch across related fields
 
-## Step 4: Materialize sidecar metadata or fallback mirror
-
-### Preferred: `metadata_output=sidecar`
+## Step 4: Materialize sidecar metadata
 
 Use this mode when the assistant created or is creating the product worksheet/workbook.
 
@@ -108,6 +106,7 @@ Required behavior:
 - write the worksheet/workbook first using the normal MaybeAI Sheet path
 - do not create `<worksheet_name>-source-confident`
 - do not create `source-tracking`
+- do not create `SourceMeta`, `底稿-SourceMeta`, hidden helper worksheets, or visible metadata worksheets
 - do not change workbook styles
 - build normalized `cell_metadata[]` with `doc_id`, `gid`, `cell`, `row`, `col`, `value_hash`, `confidence_level`, `confidence_score`, and `confidence_reason`
 - include `source_type` and `source_refs` only when backed by real provenance; do not fabricate sources to justify a score
@@ -127,15 +126,7 @@ Default product skip rules:
 - skip column A as id/label column
 - include them only when the caller explicitly marks them as data cells
 
-### Fallback: `<worksheet_name>-source-confident`
-
-Standalone fallback behavior is exact mirror view:
-
-- duplicate the same visible content from the source worksheet
-- keep the same row and column positions
-- do not insert tracking columns or helper blocks
-- apply confidence colors directly to the duplicated cells
-- if copying coerces visible strings into raw numbers, reapply formats so the mirror still looks like the source
+Legacy workbook-visible confidence mirrors are outside the product path. Create them only if the user explicitly asks for standalone workbook-visible output, and do not present them as MaybeAI overlay metadata.
 
 Color mapping:
 
@@ -147,23 +138,7 @@ Color mapping:
 
 These colors are internal style mappings only. Do not write raw hex strings into worksheet cells.
 
-## Step 5: Enrich `source-tracking` when useful in standalone mode
-
-If `source-tracking` exists:
-
-- preserve the provenance columns
-- add or refresh:
-  - `confidence_level`
-  - `confidence_score`
-  - `freshness_level`
-  - `freshness_note`
-  - `validation_status`
-  - `validation_type`
-  - `validation_note`
-
-If `source-tracking` is missing and the user only asked for confidence coloring, do not create a fake provenance table unless the user explicitly asked for one.
-
-## Step 6: Verify output
+## Step 5: Verify output
 
 For sidecar mode, confirm:
 
@@ -175,7 +150,7 @@ For sidecar mode, confirm:
 6. confidence distribution is plausible for the workbook type; for demo/synthetic workbooks, verify disclosure/calculation/assumption cells are not all assigned the same level
 7. `provenance-feature/upsert` enabled source confidence for the target `doc_id + gid`
 8. `provenance-feature/detail` returns `source_confidence_enabled=true` for the same owner user, `doc_id`, and `gid`
-9. no helper worksheet, style change, or visible cell change was made for metadata
+9. no `<worksheet_name>-source-confident`, `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, helper worksheet, style change, or visible cell change was made for metadata
 
 Endpoint summary:
 
@@ -188,27 +163,14 @@ All endpoints in this table require either `Authorization: Bearer <MAYBEAI_API_T
 | verify metadata | `POST http://play-be.omnimcp.ai/api/v1/sheet/cell-metadata/query` | representative cells return expected confidence fields |
 | verify feature | `POST http://play-be.omnimcp.ai/api/v1/sheet/provenance-feature/detail` | returned config matches target `doc_id + gid` |
 
-For standalone mirror mode:
-
-Read back the affected worksheets and confirm:
-
-1. the mirror worksheet exists
-2. visible values match the source for the audited scope
-3. row and column positions match the source
-4. visible formats still look correct
-5. confidence colors were applied to the intended cells
-6. no helper text or raw hex strings were written into visible cells
-7. if `source-tracking` was enriched, the expected assessment columns are present
-
 If any of these fail, fix the worksheet before finalizing.
 
-## Step 7: Final response
+## Step 6: Final response
 
 Keep the final response short:
 
 - audited scope
 - metadata output mode
-- created or updated worksheets, if standalone fallback was used
 - counts by confidence tier
 - counts by freshness level
 - counts by validation status

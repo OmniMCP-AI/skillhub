@@ -5,8 +5,8 @@ Use this structure for the final answer after the workbook write is complete.
 ## 1. Summary
 
 - `scope`: audited worksheet/range
-- `metadata_output`: `sidecar` or `standalone_worksheet`
-- `created_or_updated`: play-be sidecar metadata and provenance feature config, or `source-tracking`
+- `metadata_output`: `sidecar`
+- `created_or_updated`: play-be sidecar metadata and provenance feature config
 - `feature_config`: whether `source_tracking_enabled` is on for the target `doc_id + gid`
 - `source_summary`: counts by source type
 - `date_coverage`: how many rows have usable source dates
@@ -20,7 +20,6 @@ Use a compact Markdown table when useful:
 | --- | --- |
 | audited_cells | 12 |
 | sidecar_rows_written | 12 |
-| tracking_rows_written | 0 |
 | source_tracking_enabled | true |
 | web_sources | 5 |
 | api_sources | 4 |
@@ -34,8 +33,7 @@ Use a compact Markdown table when useful:
 
 Example:
 
-- `metadata_output=sidecar`: wrote 12 provenance metadata rows to play-be and enabled source tracking for the worksheet through `http://play-be.omnimcp.ai/api/v1/sheet/provenance-feature/upsert`; no `source-tracking` worksheet or style changes were created
-- `source-tracking`: wrote 12 provenance rows with source links, locators, snippets, retrieval method, and source dates
+- `metadata_output=sidecar`: wrote 12 provenance metadata rows to play-be and enabled source tracking for the worksheet through `http://play-be.omnimcp.ai/api/v1/sheet/provenance-feature/upsert`; no `source-tracking`, `SourceMeta`, helper worksheet, or style changes were created
 
 ## 4. Risks or unresolved cells
 

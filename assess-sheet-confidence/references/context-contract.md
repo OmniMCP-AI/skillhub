@@ -33,21 +33,17 @@ Exception:
 
 - if the cell is a real spreadsheet error or broken generated output, keep it in scope and mark that in `note`
 
-## Output modes
+## Output mode
 
-Preferred product mode:
+Product mode:
 
 1. `metadata_output=sidecar`
-
-Fallback standalone mode:
-
-1. worksheet-local confidence mirror: `<worksheet_name>-source-confident`
-2. optionally enriches `source-tracking`
 
 In `metadata_output=sidecar` mode:
 
 - do not create `<worksheet_name>-source-confident`
 - do not create `source-tracking`
+- do not create `SourceMeta`, `底稿-SourceMeta`, or visible metadata worksheets
 - do not modify workbook styles or visible cell values
 - emit normalized `cell_metadata[]`
 - after the workbook or worksheet write succeeds, call play-be cell metadata batch-upsert
@@ -89,14 +85,7 @@ Trusted internal creation mode:
 
 Use one authentication mode per request. Do not send metadata as a generic service user unless the owner user id is also supplied through trusted internal headers.
 
-Use standalone mirror mode only when the metadata backend is unavailable, the caller has no play-be write context, or the user explicitly asks for workbook-visible confidence coloring.
-
-`<worksheet_name>` means the worksheet resolved from `gid` or an explicit worksheet target.
-
-If the preferred mirror name exceeds the worksheet-name limit, shorten it deterministically:
-
-- first fallback: `<worksheet_name>-src-conf`
-- second fallback: truncate the worksheet-name prefix and keep `-src-conf`
+Do not use standalone mirror mode for MaybeAI product documents. If the user explicitly asks for workbook-visible confidence coloring, treat it as a legacy/export-only request and make clear that it is not the product overlay source.
 
 ## Product write-time assessment flow
 
@@ -128,7 +117,7 @@ Sidecar mode stores numeric levels:
 
 `confidence_score` is optional and must stay between `0` and `1`.
 
-Standalone mirror mode may still use text tiers:
+Legacy standalone mirror mode may still use text tiers if explicitly requested outside the product sidecar flow:
 
 - `very_high`
   - score `>= 0.9`
@@ -301,9 +290,13 @@ Feature config write:
 }
 ```
 
-## Worksheet layout
+## Legacy worksheet layout
+
+The following layouts are legacy-only and must not be created during MaybeAI product workbook generation unless the user explicitly asks for workbook-visible audit/coloring output.
 
 ### `<worksheet_name>-source-confident`
+
+Do not create this worksheet for MaybeAI product documents.
 
 Required behavior:
 
@@ -314,6 +307,8 @@ Required behavior:
 - preserve visible formatting such as percentages, currencies, and dates
 
 ### `source-tracking`
+
+Do not create or enrich this worksheet for MaybeAI product documents.
 
 If present, keep the provenance columns and add assessment columns. Preferred combined header shape:
 
