@@ -7,7 +7,7 @@ Use this checklist to verify that the skill is doing real provenance capture.
 ### A. Output target
 
 - In `metadata_output=sidecar`, no `source-tracking` worksheet is created and workbook styles are unchanged.
-- No `SourceMeta`, `底稿-SourceMeta`, helper worksheet, or visible metadata worksheet is created in product mode.
+- No `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, helper worksheet, or visible metadata worksheet is created or updated in product mode.
 
 ### A1. Sidecar metadata quality
 
@@ -21,7 +21,7 @@ For `metadata_output=sidecar`, verify:
 - header row 1 and column A were skipped by default unless explicitly overridden
 - every row has `doc_id`, `gid`, `cell`, `row`, `col`, `source_type`, `source_refs`, and `value_hash`
 - `cell` matches `row` and `col`
-- no workbook style, helper worksheet, or visible cell was changed for metadata
+- no workbook style, helper worksheet, audit worksheet, or visible cell was changed for metadata
 - frontend can query `sheet_provenance_feature_config` before rendering and then query `sheet_cell_metadata` only for enabled worksheets
 - source distribution is plausible; do not accept an entire generated workbook as `source_type=tool` unless the tool is genuinely the only recoverable provenance surface
 - if a tool wrote the workbook, sampled rows preserve `tool_role` in `source_refs[]` and row-level `source_type` reflects the upstream source

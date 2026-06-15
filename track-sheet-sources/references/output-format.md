@@ -33,7 +33,7 @@ Use a compact Markdown table when useful:
 
 Example:
 
-- `metadata_output=sidecar`: wrote 12 provenance metadata rows to play-be and enabled source tracking for the worksheet through `http://play-be.omnimcp.ai/api/v1/sheet/provenance-feature/upsert`; no `source-tracking`, `SourceMeta`, helper worksheet, or style changes were created
+- `metadata_output=sidecar`: wrote 12 provenance metadata rows to play-be and enabled source tracking for the worksheet through `http://play-be.omnimcp.ai/api/v1/sheet/provenance-feature/upsert`; no `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, helper worksheet, or style changes were created or updated in the product workbook
 
 ## 4. Risks or unresolved cells
 

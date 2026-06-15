@@ -8,7 +8,8 @@ Verify:
 - expected business worksheets exist
 - row 1 headers read back cleanly, without `_col_*` caused by decorative title rows
 - demo/synthetic data is visibly labeled when used
-- no visible `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, or `<worksheet>-source-confident` sheet exists unless explicitly requested
+- no visible `source-tracking`, `confidence-assessment`, `SourceMeta`, `底稿-SourceMeta`, or `<worksheet>-source-confident` sheet exists or was updated in the product workbook
+- visible metadata worksheets in a product workbook are not evidence of successful tracking; only play-be sidecar metadata plus feature config count as success
 
 ## Sidecar Metadata Verification
 
@@ -60,3 +61,12 @@ The final response should mention:
 - limitations
 
 Do not dump raw metadata rows into the user response.
+
+## Legacy Worksheet Cleanup Signal
+
+If the product workbook already contains `source-tracking`, `confidence-assessment`, `SourceMeta`, `底稿-SourceMeta`, or `<worksheet>-source-confident` sheets from an older run:
+
+- do not add new rows to them
+- do not create additional mirror sheets
+- write or repair play-be sidecar metadata for the business worksheets
+- mention that the visible metadata worksheets are legacy artifacts and should be removed or hidden by a separate cleanup action if the user wants a cleaner workbook

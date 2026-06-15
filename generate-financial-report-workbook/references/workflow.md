@@ -60,10 +60,13 @@ Avoid merged title rows that break MaybeAI readback headers. Prefer row 1 as cle
 Do not add:
 
 - `source-tracking`
+- `confidence-assessment`
 - `SourceMeta`
 - `底稿-SourceMeta`
 - `<worksheet>-source-confident`
 - hidden helper metadata sheets
+
+For any MaybeAI product URL (`maybe.ai/docs/spreadsheets/d/...`), these sheets remain prohibited even when the user asks to show source/confidence details. Product display must be powered by play-be sidecar metadata. If a workbook-visible audit table is required, create an offline/export copy rather than mutating the product workbook.
 
 ## Step 5: Upload Or Create MaybeAI Sheet
 
@@ -124,4 +127,5 @@ Before final response:
 - verify feature config through `provenance-feature/detail`
 - verify source distribution is not incorrectly all `tool`
 - verify confidence distribution is not incorrectly all `2`
-- verify no visible source/confidence worksheet was created unless explicitly requested
+- verify no visible source/confidence worksheet was created or updated in the product workbook
+- if visible metadata worksheets exist in the product workbook from a previous run, do not treat them as success evidence; write sidecar metadata and report the legacy worksheets as cleanup debt

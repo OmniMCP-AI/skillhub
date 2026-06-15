@@ -12,9 +12,11 @@
 - `[created_by_run_id=<hermes_or_openclaw_run_id>]`
 - `[owner_user_id=<user_id>]` when using internal play-be metadata writes
 - `[owner_user_email=<email>]` when available
-- existing `source-tracking` worksheet
+- existing play-be sidecar provenance from `sheet_cell_metadata`
 - session history or tool-call records if confidence depends on how the value was produced
 - existing source dates, links, snippets, or notes
+
+Workbook-visible `source-tracking` is not a preferred input for MaybeAI product documents. Use it only when the target is an offline/export copy.
 
 If `selected_range` is missing, assess the narrowest safe scope. Do not silently expand to the whole workbook unless the user explicitly asked for it.
 
@@ -85,7 +87,7 @@ Trusted internal creation mode:
 
 Use one authentication mode per request. Do not send metadata as a generic service user unless the owner user id is also supplied through trusted internal headers.
 
-Do not use standalone mirror mode for MaybeAI product documents. If the user explicitly asks for workbook-visible confidence coloring, treat it as a legacy/export-only request and make clear that it is not the product overlay source.
+Do not use standalone mirror mode for MaybeAI product documents. If the user explicitly asks for workbook-visible confidence coloring, treat it as an offline/export-copy request and do not write that mirror into the product workbook.
 
 ## Product write-time assessment flow
 
@@ -117,7 +119,7 @@ Sidecar mode stores numeric levels:
 
 `confidence_score` is optional and must stay between `0` and `1`.
 
-Legacy standalone mirror mode may still use text tiers if explicitly requested outside the product sidecar flow:
+Offline/export-copy mirror mode may still use text tiers when the target is not a MaybeAI product document:
 
 - `very_high`
   - score `>= 0.9`
@@ -181,7 +183,7 @@ Recommended `validation_type` values:
 
 ## Assessment schema
 
-When this skill enriches `source-tracking`, it should use these fields:
+When this skill enriches an offline/export-copy `source-tracking` table, it should use these fields:
 
 | field | meaning |
 | --- | --- |
@@ -292,13 +294,15 @@ Feature config write:
 
 ## Legacy worksheet layout
 
-The following layouts are legacy-only and must not be created during MaybeAI product workbook generation unless the user explicitly asks for workbook-visible audit/coloring output.
+The following layouts are legacy-only for offline/export copies. They must not be created, updated, or enriched inside any MaybeAI product document (`maybe.ai/docs/spreadsheets/d/...`). Product UI overlays read play-be sidecar metadata, not workbook-visible confidence mirrors or audit worksheets.
+
+If the user asks for visible confidence coloring while the target is a product document, do not write it into that workbook. Create an offline/export copy or ask the caller to provide a non-product workbook target.
 
 ### `<worksheet_name>-source-confident`
 
 Do not create this worksheet for MaybeAI product documents.
 
-Required behavior:
+Offline/export-copy behavior:
 
 - duplicate the original worksheet content for the audited scope
 - keep the same row numbers, column positions, and visible values
@@ -310,7 +314,7 @@ Required behavior:
 
 Do not create or enrich this worksheet for MaybeAI product documents.
 
-If present, keep the provenance columns and add assessment columns. Preferred combined header shape:
+If present in an offline/export copy, keep the provenance columns and add assessment columns. Preferred combined header shape:
 
 | worksheet_name | cell | value | source_type | source_link | source_section | source_date_type | source_date | evidence_excerpt | retrieval_method | confidence_level | confidence_score | freshness_level | freshness_note | validation_status | validation_type | validation_note | note |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

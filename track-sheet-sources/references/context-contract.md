@@ -102,7 +102,7 @@ Trusted internal creation mode:
 
 Use one authentication mode per request. Do not send metadata as a generic service user unless the owner user id is also supplied through trusted internal headers.
 
-Do not use standalone worksheet mode for MaybeAI product documents. If the user explicitly asks for a workbook-visible audit table, treat it as a legacy/export-only request and make clear that it is not the product overlay source.
+Do not use standalone worksheet mode for MaybeAI product documents. If the user explicitly asks for a workbook-visible audit table, treat it as an offline/export-copy request and do not write that table into the product workbook.
 
 It does not own `<worksheet_name>-source-confident`.
 
@@ -256,7 +256,9 @@ Feature config write:
 
 ## Legacy worksheet layout
 
-The following layout is legacy-only and must not be created during MaybeAI product workbook generation unless the user explicitly asks for a workbook-visible audit table.
+The following layout is legacy-only for offline/export copies. It must not be created, updated, or enriched inside any MaybeAI product document (`maybe.ai/docs/spreadsheets/d/...`). Product UI overlays read play-be sidecar metadata, not workbook-visible audit worksheets.
+
+If the user asks for a visible audit table while the target is a product document, do not write it into that workbook. Create an offline/export copy or ask the caller to provide a non-product workbook target.
 
 ### `source-tracking`
 
@@ -267,10 +269,10 @@ Minimum base header:
 | worksheet_name | cell | value | source_type | source_link | source_section | source_date_type | source_date | evidence_excerpt | retrieval_method | note |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
-Compatibility rule:
+Offline/export-copy compatibility rule:
 
-- if `source-tracking` already contains extra columns from `assess-sheet-confidence`, preserve them when feasible
-- do not remove confidence, freshness, or validation columns unless the user explicitly asked to rebuild the sheet from scratch
+- if `source-tracking` already contains extra columns from `assess-sheet-confidence`, preserve them when feasible in the offline/export copy
+- do not remove confidence, freshness, or validation columns unless the user explicitly asked to rebuild the offline/export copy from scratch
 
 ## Non-fabrication rules
 

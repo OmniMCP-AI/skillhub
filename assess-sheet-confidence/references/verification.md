@@ -7,7 +7,7 @@ Use this checklist to verify that the skill is doing a real confidence assessmen
 ### A. Output target
 
 - In `metadata_output=sidecar`, no `<worksheet_name>-source-confident` worksheet is created and workbook styles are unchanged.
-- No `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, helper worksheet, or visible metadata worksheet is created in product mode.
+- No `<worksheet_name>-source-confident`, `confidence-assessment`, `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, helper worksheet, or visible metadata worksheet is created or updated in product mode.
 
 ### A1. Sidecar metadata quality
 
@@ -22,7 +22,7 @@ For `metadata_output=sidecar`, verify:
 - every row has `doc_id`, `gid`, `cell`, `row`, `col`, `value_hash`, `confidence_level`, and `confidence_reason`
 - every `confidence_level` is an integer from `1` through `5`
 - unsupported rows use low confidence and empty or explicitly weak evidence instead of fabricated sources
-- no workbook style, helper worksheet, or visible cell was changed for metadata
+- no workbook style, helper worksheet, audit worksheet, or visible cell was changed for metadata
 - frontend can query `sheet_provenance_feature_config` before rendering and then query `sheet_cell_metadata` only for enabled worksheets
 - confidence distribution is plausible for the workbook type; do not accept a uniform whole-workbook score without an explicit reason
 - for synthetic/demo workbooks, disclosure, calculation, assumptions, and unsupported real-world claims are scored separately

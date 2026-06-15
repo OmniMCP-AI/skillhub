@@ -25,10 +25,12 @@ This skill explains how an agent should:
 
 Prefer these sources in order:
 
-1. existing `source-tracking`
+1. existing play-be sidecar provenance from `sheet_cell_metadata`
 2. session history and tool-call records
 3. attached citations or opened sources
 4. direct sheet values and neighboring context
+
+Do not create, update, or enrich workbook-visible `source-tracking` in a MaybeAI product document. If such a sheet already exists, treat it as a legacy artifact, not as product overlay storage.
 
 For each target cell, capture:
 
@@ -126,7 +128,7 @@ Default product skip rules:
 - skip column A as id/label column
 - include them only when the caller explicitly marks them as data cells
 
-Legacy workbook-visible confidence mirrors are outside the product path. Create them only if the user explicitly asks for standalone workbook-visible output, and do not present them as MaybeAI overlay metadata.
+Legacy workbook-visible confidence mirrors are outside the product path and offline/export-copy only. Do not create them inside a MaybeAI product document, even if the user asks to show or color confidence. For product documents, the visible UI must read play-be sidecar metadata through the combined Source/Confidence controls.
 
 Color mapping:
 
@@ -150,7 +152,7 @@ For sidecar mode, confirm:
 6. confidence distribution is plausible for the workbook type; for demo/synthetic workbooks, verify disclosure/calculation/assumption cells are not all assigned the same level
 7. `provenance-feature/upsert` enabled source confidence for the target `doc_id + gid`
 8. `provenance-feature/detail` returns `source_confidence_enabled=true` for the same owner user, `doc_id`, and `gid`
-9. no `<worksheet_name>-source-confident`, `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, helper worksheet, style change, or visible cell change was made for metadata
+9. no `<worksheet_name>-source-confident`, `confidence-assessment`, `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, helper worksheet, style change, or visible cell change was made for metadata
 
 Endpoint summary:
 

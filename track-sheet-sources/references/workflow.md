@@ -120,7 +120,7 @@ The feature upsert is not optional. The frontend uses `sheet_provenance_feature_
 
 Because the upsert payload contains both feature booleans, do not accidentally turn confidence off when enabling source tracking. If this skill is not also writing confidence metadata, first call `provenance-feature/detail` or use the creation flow's known feature state, then preserve `source_confidence_enabled`.
 
-Legacy workbook-visible audit tables are outside the product path. Create them only if the user explicitly asks for standalone workbook-visible output, and do not present them as MaybeAI overlay metadata.
+Legacy workbook-visible audit tables are outside the product path and offline/export-copy only. Do not create them inside a MaybeAI product document, even if the user asks to show tracking. For product documents, the visible UI must read play-be sidecar metadata through the combined Source/Confidence controls.
 
 ## Step 5: Write with MaybeAI Sheet APIs
 
@@ -155,7 +155,7 @@ For sidecar mode, confirm:
 5. `source_refs` contain only real evidence and no fabricated URLs, fragments, field paths, or dates
 6. `provenance-feature/upsert` enabled source tracking for the target `doc_id + gid`
 7. `provenance-feature/detail` returns `source_tracking_enabled=true` for the same owner user, `doc_id`, and `gid`
-8. no `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, or helper worksheet was created
+8. no `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, or helper worksheet was created or updated in the product workbook
 
 If any of these fail, fix the worksheet before finalizing.
 
