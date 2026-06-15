@@ -33,6 +33,7 @@ The product default is **sidecar metadata only**:
 
 - create or upload the workbook normally
 - do not create visible `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, `<worksheet>-source-confident`, or confidence mirror worksheets
+- the UI may show one combined `Source/Confidence Tracking` control and one combined `Source/Confidence Overlay`, but the backend contract remains two feature flags and one shared sidecar metadata row per cell
 - after workbook creation, write source/confidence metadata to play-be:
   - `POST http://play-be.omnimcp.ai/api/v1/sheet/cell-metadata/batch-upsert`
   - `POST http://play-be.omnimcp.ai/api/v1/sheet/provenance-feature/upsert`
@@ -40,6 +41,7 @@ The product default is **sidecar metadata only**:
 - use only backend-supported row-level source types: `database`, `api`, `tool`, `file`, `document`, `web`, `search`, `multimedia`, `llm`, `mixed`, `user`, `unknown`
 - do not use row-level `source_type=synthetic` or `source_type=formula`
 - do not use row-level `source_type=tool` just because a script wrote the workbook
+- treat `doc_id + gid + row + col` as the identity key for metadata; `user_id` is audit/last-writer information, not a separate metadata namespace
 
 ## What To Read
 

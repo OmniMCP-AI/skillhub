@@ -33,9 +33,15 @@ Authentication:
 
 - default external/authenticated mode: set `MAYBEAI_API_TOKEN` and send `Authorization: Bearer <MAYBEAI_API_TOKEN>`
 - trusted Hermes/OpenClaw internal mode: send `X-Internal-Token`, `X-User-Id`, and optional `X-User-Email`
-- metadata must be written as the sheet owner user; otherwise the frontend owner query will not see it
+- access is still checked through document permissions, but sidecar metadata is shared by `doc_id + gid + cell`; `user_id` is audit/last-writer metadata, not the visibility boundary
 
 This skill is primarily a write-time assessment skill. Hermes/OpenClaw should score confidence from the same creation context used to write the workbook/worksheet, then persist the sidecar after the sheet write returns `doc_id` and `gid`. The frontend only renders or hides the overlay; it does not create or repair confidence metadata in the current plan.
+
+Product UI note:
+
+- The product UI may expose one combined `Source/Confidence Tracking` control and one combined `Source/Confidence Overlay`.
+- Keep this skill separate from `track-sheet-sources`: this skill owns confidence fields (`confidence_level`, `confidence_reason`, `freshness`, `validation`).
+- The backend still stores separate feature flags (`source_tracking_enabled`, `source_confidence_enabled`) and separate metadata fields in the same `sheet_cell_metadata` row.
 
 Shared contract: read `context-contract.md` first. It defines the inputs, scoring fields, and sidecar metadata contract.
 
@@ -100,6 +106,7 @@ Use `analyze-sheet-lineage` for formula dependency tracing.
 14. In sidecar mode, after the worksheet/workbook write succeeds, call play-be cell metadata batch-upsert and `provenance-feature/upsert` with source confidence enabled. If either upsert fails, report partial completion.
 15. After writing, verify sidecar row counts and feature config.
 16. If `track-sheet-sources` is also running in the same creation flow, merge provenance and confidence fields into the same `cell_metadata[]` objects and perform one batch-upsert when practical. Do not overwrite valid source fields with `unknown` during confidence-only scoring.
+17. Treat `doc_id + gid + row + col` as the identity key for sidecar cell metadata. Do not create user-specific duplicate rows for the same cell.
 
 ## Output Rules
 

@@ -27,9 +27,15 @@ Authentication:
 
 - default external/authenticated mode: set `MAYBEAI_API_TOKEN` and send `Authorization: Bearer <MAYBEAI_API_TOKEN>`
 - trusted Hermes/OpenClaw internal mode: send `X-Internal-Token`, `X-User-Id`, and optional `X-User-Email`
-- metadata must be written as the sheet owner user; otherwise the frontend owner query will not see it
+- access is still checked through document permissions, but sidecar metadata is shared by `doc_id + gid + cell`; `user_id` is audit/last-writer metadata, not the visibility boundary
 
 This skill is primarily a write-time capture skill. Hermes/OpenClaw should capture provenance while creating the workbook/worksheet, then persist the sidecar after the sheet write returns `doc_id` and `gid`. Do not ask the frontend to infer provenance from later edits.
+
+Product UI note:
+
+- The product UI may expose one combined `Source/Confidence Tracking` control and one combined `Source/Confidence Overlay`.
+- Keep this skill separate from `assess-sheet-confidence`: this skill owns provenance fields (`source_type`, `source_refs`, locators, evidence).
+- The backend still stores separate feature flags (`source_tracking_enabled`, `source_confidence_enabled`) and separate metadata fields in the same `sheet_cell_metadata` row.
 
 Shared contract: read `context-contract.md` first. It defines the required inputs, sidecar provenance schema, and non-fabrication rules.
 
@@ -94,8 +100,9 @@ Use `assess-sheet-confidence` for confidence, freshness, and sanity scoring.
    - classify it as `mixed` and explain the composition in `note`.
 13. In sidecar mode, after the worksheet/workbook write succeeds, call play-be cell metadata batch-upsert and provenance-feature/upsert. If either upsert fails, report partial completion and do not claim overlay metadata is available.
 14. If `assess-sheet-confidence` is also running in the same creation flow, merge provenance and confidence fields into the same `cell_metadata[]` objects and perform one batch-upsert when practical. Do not write two conflicting records for the same `doc_id + gid + row + col`.
-15. After writing, verify sidecar row counts and feature config.
-16. If a legacy `source-tracking` table already exists, do not update it unless the user explicitly requested legacy workbook-visible audit output.
+15. Treat `doc_id + gid + row + col` as the identity key for sidecar cell metadata. Do not create user-specific duplicate rows for the same cell.
+16. After writing, verify sidecar row counts and feature config.
+17. If a legacy `source-tracking` table already exists, do not update it unless the user explicitly requested legacy workbook-visible audit output.
 
 ## Output Rules
 

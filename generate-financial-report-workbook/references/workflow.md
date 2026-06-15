@@ -105,7 +105,7 @@ For every worksheet that has metadata:
 
 1. call `POST http://play-be.omnimcp.ai/api/v1/sheet/cell-metadata/batch-upsert`
 2. call `POST http://play-be.omnimcp.ai/api/v1/sheet/provenance-feature/upsert`
-3. set both flags as appropriate:
+3. set both backend flags as appropriate, even if the UI exposes one combined Source/Confidence control:
    - `source_tracking_enabled=true`
    - `source_confidence_enabled=true`
    - `capture_mode=write_time`
@@ -113,6 +113,8 @@ For every worksheet that has metadata:
    - `ignore_first_columns` matching actual skip rules
 
 If updating only one flag, preserve the other flag by querying `provenance-feature/detail` first.
+
+Cell metadata identity is `doc_id + gid + row + col`. Do not create user-specific duplicate metadata rows for the same cell. `user_id` is retained only as audit/last-writer information after document permission checks pass.
 
 ## Step 8: Verify
 

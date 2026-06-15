@@ -19,8 +19,9 @@ For each worksheet with tracked data:
    - `source_tracking_enabled=true`
    - `source_confidence_enabled=true`
    - `capture_mode=write_time`
-3. `provenance-feature/detail` returns the same config for the same owner user, `doc_id`, and `gid`
+3. `provenance-feature/detail` returns the same config for the same `doc_id` and `gid` after document permission checks pass
 4. `cell-metadata/query` returns representative sample cells
+5. sample metadata is not duplicated by writer user; the effective identity is `doc_id + gid + row + col`
 
 ## Source Distribution Verification
 
