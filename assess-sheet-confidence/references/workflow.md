@@ -30,7 +30,7 @@ Prefer these sources in order:
 3. attached citations or opened sources
 4. direct sheet values and neighboring context
 
-Do not create, update, or enrich workbook-visible `source-tracking` in a MaybeAI product document. If such a sheet already exists, treat it as a legacy artifact, not as product overlay storage.
+Workbook-visible `source-tracking` in a MaybeAI product document is a legacy artifact, not product overlay storage.
 
 For each target cell, capture:
 
@@ -106,10 +106,7 @@ Use this mode when the assistant created or is creating the product worksheet/wo
 Required behavior:
 
 - write the worksheet/workbook first using the normal MaybeAI Sheet path
-- do not create `<worksheet_name>-source-confident`
-- do not create `source-tracking`
-- do not create `SourceMeta`, `底稿-SourceMeta`, hidden helper worksheets, or visible metadata worksheets
-- do not change workbook styles
+- keep the workbook grid and styles unchanged for metadata
 - build normalized `cell_metadata[]` with `doc_id`, `gid`, `cell`, `row`, `col`, `value_hash`, `confidence_level`, `confidence_score`, and `confidence_reason`
 - include `source_type` and `source_refs` only when backed by real provenance; do not fabricate sources to justify a score
 - include a short `validation_note` when the score is based on synthetic disclosure, formula consistency, or industry plausibility rather than direct real-world evidence
@@ -128,7 +125,7 @@ Default product skip rules:
 - skip column A as id/label column
 - include them only when the caller explicitly marks them as data cells
 
-Legacy workbook-visible confidence mirrors are outside the product path and offline/export-copy only. Do not create them inside a MaybeAI product document, even if the user asks to show or color confidence. For product documents, the visible UI must read play-be sidecar metadata through the combined Source/Confidence controls.
+For product documents, the visible UI reads play-be sidecar metadata through the combined Source/Confidence controls.
 
 Color mapping:
 
@@ -152,7 +149,7 @@ For sidecar mode, confirm:
 6. confidence distribution is plausible for the workbook type; for demo/synthetic workbooks, verify disclosure/calculation/assumption cells are not all assigned the same level
 7. `provenance-feature/upsert` enabled source confidence for the target `doc_id + gid`
 8. `provenance-feature/detail` returns `source_confidence_enabled=true` for the same owner user, `doc_id`, and `gid`
-9. no `<worksheet_name>-source-confident`, `confidence-assessment`, `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, helper worksheet, style change, or visible cell change was made for metadata
+9. workbook grid and styles were unchanged by metadata materialization
 
 Endpoint summary:
 

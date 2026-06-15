@@ -57,16 +57,7 @@ Generate the workbook with user-facing business sheets only. For finance managem
 
 Avoid merged title rows that break MaybeAI readback headers. Prefer row 1 as clean column headers.
 
-Do not add:
-
-- `source-tracking`
-- `confidence-assessment`
-- `SourceMeta`
-- `底稿-SourceMeta`
-- `<worksheet>-source-confident`
-- hidden helper metadata sheets
-
-For any MaybeAI product URL (`maybe.ai/docs/spreadsheets/d/...`), these sheets remain prohibited even when the user asks to show source/confidence details. Product display must be powered by play-be sidecar metadata. If a workbook-visible audit table is required, create an offline/export copy rather than mutating the product workbook.
+Keep the workbook business-facing. Store source/confidence details in play-be sidecar metadata so the product UI can render overlays and Cell Info without adding metadata sheets.
 
 ## Step 5: Upload Or Create MaybeAI Sheet
 

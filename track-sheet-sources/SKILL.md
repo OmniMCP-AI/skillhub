@@ -37,11 +37,10 @@ Product UI note:
 - Keep this skill separate from `assess-sheet-confidence`: this skill owns provenance fields (`source_type`, `source_refs`, locators, evidence).
 - The backend still stores separate feature flags (`source_tracking_enabled`, `source_confidence_enabled`) and separate metadata fields in the same `sheet_cell_metadata` row.
 
-Product document rule:
+Product output target:
 
-- Any `maybe.ai/docs/spreadsheets/d/...` workbook is a product document. Product documents must use play-be sidecar metadata only.
-- Never create, update, or preserve workbook-visible provenance worksheets in a product document, including `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, hidden helper worksheets, or audit tables.
-- If the user asks for a workbook-visible audit table for a product document, create or request an offline/export copy instead. Do not mutate the product workbook with metadata worksheets.
+- For `maybe.ai/docs/spreadsheets/d/...`, materialize provenance as play-be sidecar metadata.
+- Workbook-visible audit tables are an offline export concern, not the product storage path.
 
 Shared contract: read `context-contract.md` first. It defines the required inputs, sidecar provenance schema, and non-fabrication rules.
 
@@ -97,8 +96,8 @@ Use `assess-sheet-confidence` for confidence, freshness, and sanity scoring.
    - `user`
 6. Never invent a `source_link`, `#fragment`, section title, API field path, tool name, file path, snippet, or date.
 7. If evidence is incomplete or model-derived, keep the value but mark it `llm`.
-8. Use `metadata_output=sidecar` when the caller is creating or updating a MaybeAI workbook or worksheet for the product UI. Do not create `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, hidden helper worksheets, or visible metadata worksheets.
-9. Do not use standalone worksheet mode for MaybeAI product documents, even when the user asks to "show tracking" or "show sources". Product UI display comes from play-be sidecar metadata. Workbook-visible audit tables are offline/export-copy only.
+8. Use `metadata_output=sidecar` when the caller is creating or updating a MaybeAI workbook or worksheet for the product UI.
+9. Product UI display comes from play-be sidecar metadata. Workbook-visible audit tables belong only to separately requested offline exports.
 10. `track-sheet-sources` owns provenance fields only. It does not create `<worksheet_name>-source-confident` and does not score confidence colors.
 11. Record `source_date_type` and `source_date` when the source exposes them, but do not grade freshness here.
 12. If one cell has multiple real sources worth preserving, either:
@@ -108,7 +107,7 @@ Use `assess-sheet-confidence` for confidence, freshness, and sanity scoring.
 14. If `assess-sheet-confidence` is also running in the same creation flow, merge provenance and confidence fields into the same `cell_metadata[]` objects and perform one batch-upsert when practical. Do not write two conflicting records for the same `doc_id + gid + row + col`.
 15. Treat `doc_id + gid + row + col` as the identity key for sidecar cell metadata. Do not create user-specific duplicate rows for the same cell.
 16. After writing, verify sidecar row counts and feature config.
-17. If a legacy `source-tracking` table already exists in a product document, do not update it and do not treat it as product overlay metadata. Prefer writing sidecar metadata for the business worksheets and report the legacy sheet as cleanup debt if relevant.
+17. If a legacy `source-tracking` table already exists in a product document, treat it as a stale artifact. Prefer writing sidecar metadata for the business worksheets and report the legacy sheet as cleanup debt if relevant.
 
 ## Output Rules
 

@@ -32,7 +32,7 @@ Do not require the user to mention source tracking, confidence metadata, tool se
 The product default is **sidecar metadata only**:
 
 - create or upload the workbook normally
-- do not create visible `source-tracking`, `confidence-assessment`, `SourceMeta`, `底稿-SourceMeta`, `<worksheet>-source-confident`, or confidence mirror worksheets
+- keep source/confidence records in play-be sidecar metadata
 - the UI may show one combined `Source/Confidence Tracking` control and one combined `Source/Confidence Overlay`, but the backend contract remains two feature flags and one shared sidecar metadata row per cell
 - after workbook creation, write source/confidence metadata to play-be:
   - `POST http://play-be.omnimcp.ai/api/v1/sheet/cell-metadata/batch-upsert`
@@ -42,7 +42,7 @@ The product default is **sidecar metadata only**:
 - do not use row-level `source_type=synthetic` or `source_type=formula`
 - do not use row-level `source_type=tool` just because a script wrote the workbook
 - treat `doc_id + gid + row + col` as the identity key for metadata; `user_id` is audit/last-writer information, not a separate metadata namespace
-- if the target is a MaybeAI product document (`maybe.ai/docs/spreadsheets/d/...`), visible source/confidence worksheets are always invalid output. They must not be created even when the user asks to track or show metadata.
+- workbook-visible source/confidence audit tables are for offline exports, not MaybeAI product documents
 
 ## What To Read
 
@@ -75,7 +75,6 @@ Return a concise result:
 
 ## Hard Prohibitions
 
-- Do not create workbook-visible source/confidence audit worksheets in MaybeAI product documents. Standalone workbook-visible audit tables are allowed only for offline/export copies, not for the product document.
 - Do not write raw metadata into the workbook as the primary product path.
 - Do not report success for source/confidence tracking until play-be sidecar upsert and verification pass.
 - Do not accept a metadata result where all cells are `source_type=tool` and `confidence_level=2` unless the workbook truly has only one claim type and no recoverable upstream source. For generated finance workbooks this is almost always wrong.

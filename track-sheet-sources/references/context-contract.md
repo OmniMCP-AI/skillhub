@@ -58,10 +58,8 @@ Product mode:
 
 In `metadata_output=sidecar` mode:
 
-- do not create `source-tracking`
-- do not create `SourceMeta`, `底稿-SourceMeta`, or visible metadata worksheets
-- do not create helper worksheets
-- do not modify workbook styles or visible cell values
+- keep the workbook as business-facing content
+- use play-be as the metadata storage target
 - emit normalized `cell_metadata[]`
 - after the workbook or worksheet write succeeds, call play-be cell metadata batch-upsert
 - call `provenance-feature/upsert` so the frontend can discover source tracking for `doc_id + gid`
@@ -254,25 +252,9 @@ Feature config write:
 }
 ```
 
-## Legacy worksheet layout
+## Deprecated worksheet output
 
-The following layout is legacy-only for offline/export copies. It must not be created, updated, or enriched inside any MaybeAI product document (`maybe.ai/docs/spreadsheets/d/...`). Product UI overlays read play-be sidecar metadata, not workbook-visible audit worksheets.
-
-If the user asks for a visible audit table while the target is a product document, do not write it into that workbook. Create an offline/export copy or ask the caller to provide a non-product workbook target.
-
-### `source-tracking`
-
-Do not create this worksheet for MaybeAI product documents.
-
-Minimum base header:
-
-| worksheet_name | cell | value | source_type | source_link | source_section | source_date_type | source_date | evidence_excerpt | retrieval_method | note |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-
-Offline/export-copy compatibility rule:
-
-- if `source-tracking` already contains extra columns from `assess-sheet-confidence`, preserve them when feasible in the offline/export copy
-- do not remove confidence, freshness, or validation columns unless the user explicitly asked to rebuild the offline/export copy from scratch
+Older versions described a `source-tracking` worksheet. That format is deprecated for product documents. For MaybeAI Sheet URLs, write the same fields to play-be sidecar metadata.
 
 ## Non-fabrication rules
 

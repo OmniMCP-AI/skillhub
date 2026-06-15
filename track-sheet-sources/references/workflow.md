@@ -108,9 +108,7 @@ Use this mode when the assistant created or is creating the product worksheet/wo
 Required behavior:
 
 - write the worksheet/workbook first using the normal MaybeAI Sheet path
-- do not create `source-tracking`
-- do not create `SourceMeta`, `底稿-SourceMeta`, hidden helper worksheets, or visible metadata worksheets
-- do not change workbook styles
+- keep the workbook grid and styles unchanged for metadata
 - after the worksheet/workbook write succeeds, call play-be cell metadata batch-upsert with `cell_metadata[]`
 - call `provenance-feature/upsert` for `doc_id + gid` with `source_tracking_enabled=true`
 - preserve the existing confidence flag when known; if this creation flow also writes confidence metadata, send `source_confidence_enabled=true` in the same upsert
@@ -120,7 +118,7 @@ The feature upsert is not optional. The frontend uses `sheet_provenance_feature_
 
 Because the upsert payload contains both feature booleans, do not accidentally turn confidence off when enabling source tracking. If this skill is not also writing confidence metadata, first call `provenance-feature/detail` or use the creation flow's known feature state, then preserve `source_confidence_enabled`.
 
-Legacy workbook-visible audit tables are outside the product path and offline/export-copy only. Do not create them inside a MaybeAI product document, even if the user asks to show tracking. For product documents, the visible UI must read play-be sidecar metadata through the combined Source/Confidence controls.
+For product documents, the visible UI reads play-be sidecar metadata through the combined Source/Confidence controls.
 
 ## Step 5: Write with MaybeAI Sheet APIs
 
@@ -155,7 +153,7 @@ For sidecar mode, confirm:
 5. `source_refs` contain only real evidence and no fabricated URLs, fragments, field paths, or dates
 6. `provenance-feature/upsert` enabled source tracking for the target `doc_id + gid`
 7. `provenance-feature/detail` returns `source_tracking_enabled=true` for the same owner user, `doc_id`, and `gid`
-8. no `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, or helper worksheet was created or updated in the product workbook
+8. workbook grid and styles were unchanged by metadata materialization
 
 If any of these fail, fix the worksheet before finalizing.
 

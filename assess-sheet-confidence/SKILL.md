@@ -43,11 +43,10 @@ Product UI note:
 - Keep this skill separate from `track-sheet-sources`: this skill owns confidence fields (`confidence_level`, `confidence_reason`, `freshness`, `validation`).
 - The backend still stores separate feature flags (`source_tracking_enabled`, `source_confidence_enabled`) and separate metadata fields in the same `sheet_cell_metadata` row.
 
-Product document rule:
+Product output target:
 
-- Any `maybe.ai/docs/spreadsheets/d/...` workbook is a product document. Product documents must use play-be sidecar metadata only.
-- Never create, update, or preserve workbook-visible confidence/provenance worksheets in a product document, including `<worksheet>-source-confident`, `confidence-assessment`, `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, hidden helper worksheets, or audit tables.
-- If the user asks for a workbook-visible confidence mirror for a product document, create or request an offline/export copy instead. Do not mutate the product workbook with metadata worksheets.
+- For `maybe.ai/docs/spreadsheets/d/...`, materialize confidence as play-be sidecar metadata.
+- Workbook-visible confidence mirrors are an offline export concern, not the product storage path.
 
 Shared contract: read `context-contract.md` first. It defines the inputs, scoring fields, and sidecar metadata contract.
 
@@ -87,7 +86,7 @@ Use `analyze-sheet-lineage` for formula dependency tracing.
 2. Prefer `selected_range` as the audit scope. If absent, audit the active worksheet's used range only when the user clearly asked for whole-sheet coverage.
 3. Ignore blank cells, `N/A`, `NA`, `null`, `--`, or similar placeholders unless the cell itself is clearly an error value that should be tracked.
 4. Prefer existing play-be sidecar provenance from `sheet_cell_metadata` when available.
-5. Treat workbook-visible `source-tracking` as legacy/offline evidence only. Do not create, update, or enrich it for product documents. If sidecar provenance is absent, reconstruct the minimum evidence needed to score confidence, but do not attempt a full provenance audit unless the user explicitly asked for it.
+5. Treat workbook-visible `source-tracking` as legacy/offline evidence only. If sidecar provenance is absent, reconstruct the minimum evidence needed to score confidence, but do not attempt a full provenance audit unless the user explicitly asked for it.
 6. Score confidence with five tiers:
    - `very_high`
    - `high`
@@ -106,8 +105,8 @@ Use `analyze-sheet-lineage` for formula dependency tracing.
    - magnitude issues
    - outlier review
 10. Do not treat outliers as automatic errors. Mark them `needs_review` unless a stronger rule proves `invalid`.
-11. Use `metadata_output=sidecar` when the caller is creating or updating a MaybeAI workbook or worksheet for the product UI. Do not create `<worksheet_name>-source-confident`, `confidence-assessment`, `source-tracking`, `SourceMeta`, `底稿-SourceMeta`, hidden helper worksheets, or visible metadata worksheets.
-12. Do not use standalone mirror mode for MaybeAI product documents, even when the user asks to "show confidence" or "color confidence". Product UI display comes from play-be sidecar metadata. Workbook-visible confidence mirrors are offline/export-copy only.
+11. Use `metadata_output=sidecar` when the caller is creating or updating a MaybeAI workbook or worksheet for the product UI.
+12. Product UI display comes from play-be sidecar metadata. Workbook-visible confidence mirrors belong only to separately requested offline exports.
 13. In sidecar mode, emit confidence as numeric `confidence_level` 1-5, not only text tiers. `1` is very low and `5` is very high.
 14. In sidecar mode, after the worksheet/workbook write succeeds, call play-be cell metadata batch-upsert and `provenance-feature/upsert` with source confidence enabled. If either upsert fails, report partial completion.
 15. After writing, verify sidecar row counts and feature config.

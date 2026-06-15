@@ -43,10 +43,8 @@ Product mode:
 
 In `metadata_output=sidecar` mode:
 
-- do not create `<worksheet_name>-source-confident`
-- do not create `source-tracking`
-- do not create `SourceMeta`, `底稿-SourceMeta`, or visible metadata worksheets
-- do not modify workbook styles or visible cell values
+- keep the workbook as business-facing content
+- use play-be as the metadata storage target
 - emit normalized `cell_metadata[]`
 - after the workbook or worksheet write succeeds, call play-be cell metadata batch-upsert
 - call `provenance-feature/upsert` so the frontend can discover source confidence for `doc_id + gid`
@@ -292,29 +290,6 @@ Feature config write:
 }
 ```
 
-## Legacy worksheet layout
+## Deprecated worksheet output
 
-The following layouts are legacy-only for offline/export copies. They must not be created, updated, or enriched inside any MaybeAI product document (`maybe.ai/docs/spreadsheets/d/...`). Product UI overlays read play-be sidecar metadata, not workbook-visible confidence mirrors or audit worksheets.
-
-If the user asks for visible confidence coloring while the target is a product document, do not write it into that workbook. Create an offline/export copy or ask the caller to provide a non-product workbook target.
-
-### `<worksheet_name>-source-confident`
-
-Do not create this worksheet for MaybeAI product documents.
-
-Offline/export-copy behavior:
-
-- duplicate the original worksheet content for the audited scope
-- keep the same row numbers, column positions, and visible values
-- do not insert extra audit columns or helper blocks into the mirrored grid
-- color duplicated cells by confidence tier
-- preserve visible formatting such as percentages, currencies, and dates
-
-### `source-tracking`
-
-Do not create or enrich this worksheet for MaybeAI product documents.
-
-If present in an offline/export copy, keep the provenance columns and add assessment columns. Preferred combined header shape:
-
-| worksheet_name | cell | value | source_type | source_link | source_section | source_date_type | source_date | evidence_excerpt | retrieval_method | confidence_level | confidence_score | freshness_level | freshness_note | validation_status | validation_type | validation_note | note |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+Older versions described `<worksheet_name>-source-confident`, `confidence-assessment`, and enriched `source-tracking` worksheets. Those formats are deprecated for product documents. For MaybeAI Sheet URLs, write confidence and validation fields to play-be sidecar metadata.
