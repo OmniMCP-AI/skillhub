@@ -1,0 +1,7 @@
+interface:
+  display_name: "MaybeAI Formula Report"
+  short_description: "Build traceable formula-driven MaybeAI report workbooks."
+  default_prompt: "Use $maybeai-formula-report to build a MaybeAI workbook where raw sheets stay as values and report sheets stay formula-traceable."
+
+policy:
+  allow_implicit_invocation: true

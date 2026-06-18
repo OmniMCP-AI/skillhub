@@ -270,17 +270,17 @@ Must not:
 
 | Internal role | Required skills | Purpose |
 |---|---|---|
-| Hermes Orchestrator | `data-reporting/finclaw-report-analysis@latest` | Scenario contract, routing, memory, final delivery rules |
-| Advisory Agent | `data-reporting/finclaw-report-analysis@latest` | User maturity, missing-data questions, analysis path, next-best actions |
+| Hermes Orchestrator | `data-reporting/traceable-financial-analysis@latest` | Scenario contract, routing, memory, final delivery rules |
+| Advisory Agent | `data-reporting/traceable-financial-analysis@latest` | User maturity, missing-data questions, analysis path, next-best actions |
 | Data Foundation Agent | `data-reporting/document-ingestion@latest`; `financial-statements/finclaw-three-statement-foundation@latest`; `data-reporting/finclaw-mock-data@latest` for demos only | File intake, extraction, three-statement fact base, validation, lineage |
 | Financial Analysis Agent | `comprehensive-finance/finance-business-analysis@latest`; `data-reporting/bi-analysis@latest`; `budgeting/finance-budget-control@latest` when budget data exists; `financial-statements/finance-consolidation@latest` when consolidation is needed | Deep financial/business analysis, template mapping, metrics, variance, consolidation-specific analysis |
 | Visualization Agent | `data-reporting/finance-charts@latest`; `data-reporting/sheet-dashboard@latest`; optional `global/infographic-report@latest` on export request | Charts and sheet dashboard by default; one-page infographic only when requested/exported |
-| Audit Agent | `financial-statements/finclaw-three-statement-foundation@latest`; `data-reporting/bi-analysis@latest`; `data-reporting/finclaw-report-analysis@latest` | Three-statement checks, metric recalculation, conclusion support, output contract audit |
+| Audit Agent | `financial-statements/finclaw-three-statement-foundation@latest`; `data-reporting/bi-analysis@latest`; `data-reporting/traceable-financial-analysis@latest` | Three-statement checks, metric recalculation, conclusion support, output contract audit |
 | Delivery Writer | `global/maybeai-sheet@latest`; `data-reporting/sheet-dashboard@latest`; optional `global/infographic-report@latest`; optional `global/ppt-report@latest` | MaybeSheet writing and dashboard pages by default; infographic/PPT only on demand |
 
 Optional compatibility skill:
 
-- `data-reporting/finclaw-financial-analysis-runner@latest`: may be used as a thin legacy runner only after the current `finclaw-report-analysis` contract is loaded.
+- `data-reporting/finclaw-financial-analysis-runner@latest`: may be used as a thin legacy runner only after the current `traceable-financial-analysis` contract is loaded.
 
 Do not let output-only skills override upstream data, analysis, audit, or advisory requirements.
 

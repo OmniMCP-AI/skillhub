@@ -95,6 +95,43 @@ Example user-facing wording:
 
 Only search local files after the user explicitly provides a path or confirms a search scope.
 
+## 2.3 Metric-Grain and Unit Consistency Rule
+
+Hermes must treat period grain and unit as first-class report constraints, not as formatting details.
+
+Every financial metric used in output should be unambiguous across these dimensions:
+
+- `current` (single-quarter / current-period)
+- `ytd` (year-to-date / cumulative)
+- `ending` (point-in-time ending balance)
+- unit (`元`, `万元`, `%`, ratio)
+
+Hermes must not mix these dimensions casually inside formulas, charts, dashboards, or narrative text.
+
+### Required consistency behavior
+
+1. Dashboard rows must bind to explicit metric definitions.
+2. Narrative text must reuse the same metric definitions as dashboard and tables.
+3. Ratios must use inputs with compatible grain and unit.
+4. Labels such as 环比、累计、单季、期末 must reflect the true formula grain.
+
+### Examples
+
+- `单季营收环比` must use single-quarter revenue, not cumulative revenue.
+- `OCF / 净利润（单季）` must use single-quarter OCF and single-quarter net profit.
+- `OCF / 净利润（累计）` must use cumulative OCF and cumulative net profit.
+- `资产负债率` in quarterly balance-sheet analysis must use ending-balance debt and ending-balance assets/equity basis as defined by the rule engine.
+
+### Blocking errors
+
+Audit should block delivery if any of the following is found:
+
+- `元` and `万元` mixed in the same derived metric
+- `current` and `ytd` mixed without an explicit approved formula
+- dashboard and narrative showing different values for the same named metric
+- a row labeled 环比 that is actually computed from cumulative values
+- ambiguous row names such as `营业收入` where the grain is not clear from context
+
 ## 3. Scenario Pack
 
 The report analysis scenario pack contains:
@@ -174,6 +211,7 @@ Owns:
 - unsupported questions
 
 It must use the Finance Rule Engine for fixed formulas where available.
+It must produce normalized metrics before output writing when dashboard or narrative needs derived values.
 
 ### 4.5 Visualization Agent
 
@@ -186,6 +224,7 @@ Owns:
 - chart data references
 
 It must not create new financial conclusions.
+It must not invent or recompute metric logic independently from the normalized metric layer.
 
 ### 4.6 Audit Agent
 
@@ -197,6 +236,7 @@ Owns:
 - blocking decisions
 
 It reviews both process and result.
+It must verify metric-grain consistency, unit consistency, and dashboard/narrative consistency before delivery.
 
 ## 5. Persistent Memory Model
 
@@ -466,21 +506,21 @@ Required skill responsibilities:
 
 | Internal role | Required skills | Purpose |
 |---|---|---|
-| Hermes Orchestrator | `data-reporting/finclaw-report-analysis@latest` | Scenario contract, routing, memory, final delivery rules |
-| Advisory Agent | `data-reporting/finclaw-report-analysis@latest` | User maturity, missing-data questions, analysis path, next-best actions |
+| Hermes Orchestrator | `data-reporting/traceable-financial-analysis@latest` | Scenario contract, routing, memory, final delivery rules |
+| Advisory Agent | `data-reporting/traceable-financial-analysis@latest` | User maturity, missing-data questions, analysis path, next-best actions |
 | Data Foundation Agent | `data-reporting/document-ingestion@latest`; `financial-statements/finclaw-three-statement-foundation@latest`; `data-reporting/finclaw-mock-data@latest` for demos only | File intake, extraction, three-statement fact base, validation, lineage |
 | Financial Analysis Agent | `comprehensive-finance/finance-business-analysis@latest`; `data-reporting/bi-analysis@latest`; `budgeting/finance-budget-control@latest` when budget data exists; `financial-statements/finance-consolidation@latest` when consolidation is needed | Deep financial/business analysis, template mapping, metrics, variance, consolidation-specific analysis |
 | Visualization Agent | `data-reporting/finance-charts@latest`; `data-reporting/sheet-dashboard@latest`; optional `global/infographic-report@latest` on export request | Charts and sheet dashboard by default; one-page infographic only when requested/exported |
-| Audit Agent | `financial-statements/finclaw-three-statement-foundation@latest`; `data-reporting/bi-analysis@latest`; `data-reporting/finclaw-report-analysis@latest` | Three-statement checks, metric recalculation, conclusion support, output contract audit |
+| Audit Agent | `financial-statements/finclaw-three-statement-foundation@latest`; `data-reporting/bi-analysis@latest`; `data-reporting/traceable-financial-analysis@latest` | Three-statement checks, metric recalculation, conclusion support, output contract audit |
 | Delivery Writer | `global/maybeai-sheet@latest`; `data-reporting/sheet-dashboard@latest`; optional `global/infographic-report@latest`; optional `global/ppt-report@latest` | MaybeSheet writing and dashboard pages by default; infographic/PPT only on demand |
 
 Optional compatibility skill:
 
-- `data-reporting/finclaw-financial-analysis-runner@latest`: may be used as a thin legacy runner only after this `finclaw-report-analysis` contract is loaded. It must not override the current output contract, audit report, traceability summary, or quality non-regression rule.
+- `data-reporting/finclaw-financial-analysis-runner@latest`: may be used as a thin legacy runner only after this `traceable-financial-analysis` contract is loaded. It must not override the current output contract, audit report, traceability summary, or quality non-regression rule.
 
 End-to-end sequence:
 
-1. Load `data-reporting/finclaw-report-analysis@latest`.
+1. Load `data-reporting/traceable-financial-analysis@latest`.
 2. Use Advisory behavior from this skill to clarify report goal, missing data, and next-step guidance.
 3. Use `data-reporting/document-ingestion@latest` for user files and mixed formats.
 4. Use `financial-statements/finclaw-three-statement-foundation@latest` to build the three-statement evidence pack, validations, and lineage.
