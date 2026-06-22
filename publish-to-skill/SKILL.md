@@ -21,11 +21,12 @@ python3 scripts/recommend_version.py /path/to/skill --json
 
 4. Use the recommended bump unless the user explicitly overrides it.
 5. If the user wants an actual release, update the local version source first:
-   - SkillHub: update `SKILL.md` `version:` before publish
+   - SkillHub: sync the skill repo to `origin/main`, then update `SKILL.md` `version:` before publish
    - ClawHub: keep repo version metadata aligned with the explicit `--version` you publish
 6. For `skillhub`, read `references/skillhub.md`.
 7. For `clawhub`, read `references/clawhub.md`.
 8. Publish, then verify the result from CLI output or a follow-up search/inspect call.
+9. If the release changed local version metadata, commit only that version edit and push it to `origin/main`.
 
 ## Version Policy
 
@@ -52,9 +53,11 @@ Use the local `skillhub` CLI. Mirror the `ops/skillhub-cli` operational flow loc
 3. Run `publish --dry-run`
 4. Run the real `publish`
 5. Verify with `search` or the returned detail URL
+6. Commit the local version bump and push it to `main`
 
 Always prepare a clean directory before publishing repo roots, because SkillHub validation commonly rejects `.git`, `.gitignore`, and local artifacts.
 If dry-run returns `Version already published`, update the local `SKILL.md` `version:` to the recommended next version and dry-run again.
+Before editing `SKILL.md` for a SkillHub release, sync the target skill repo to `origin/main` with a fast-forward pull when possible. After a successful publish, if `SKILL.md` or another version metadata file was edited for the release, commit only those version metadata files and push to `origin/main`. Do not include untracked artifacts, registry tokens, prepared publish directories, or unrelated user changes in the version bump commit.
 
 Read `references/skillhub.md` before acting.
 
@@ -89,6 +92,7 @@ Read `references/clawhub.md` before acting.
 - Prefer `--dry-run` before remote publish when the CLI supports it.
 - If the remote already has the same version, either bump again or stop and explain why.
 - If the source repo has no meaningful changes since the last version bump, do not invent a release.
+- When committing a release version bump, commit only version metadata files and push to `origin/main`; leave unrelated working-tree changes untouched.
 
 ## When To Read References
 
