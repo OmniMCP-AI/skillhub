@@ -1,0 +1,4 @@
+interface:
+  display_name: "Publish To Skill"
+  short_description: "Publish skills to SkillHub or ClawHub"
+  default_prompt: "Use $publish-to-skill to publish or update this local skill to SkillHub or ClawHub with a version bump based on recent changes."
