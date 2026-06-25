@@ -1,0 +1,8 @@
+interface:
+  display_name: "FinClaw Intake"
+  short_description: "Handle finance file intake, path scope, and first-pass readability checks."
+  default_prompt: "Use $finclaw-intake to capture finance files or paths, clarify source scope, and determine whether the sources are readable enough to continue."
+
+policy:
+  allow_implicit_invocation: true
+

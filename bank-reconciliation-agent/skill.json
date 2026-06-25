@@ -1,0 +1,151 @@
+{
+  "compat_tags": [
+    "agent.codex",
+    "agent.openclaw",
+    "perm.network.unknown",
+    "perm.read_fs.yes",
+    "perm.shell.blocked",
+    "perm.write_fs.limited"
+  ],
+  "description": "Automate bank statement reconciliation against general ledger records. Upload or paste bank statements (CSV, OFX, QFX, or plain text) alongside GL export dat...",
+  "eval_tags": [
+    "eval.l0.pass",
+    "eval.l1.clean",
+    "eval.l2.pass"
+  ],
+  "evaluation": {
+    "l0": {
+      "checks": {
+        "finance_relevance": 14,
+        "has_frontmatter": true,
+        "has_skill_md": true,
+        "has_structure": true,
+        "has_summary": true,
+        "has_title": true,
+        "quality_score": 1.0
+      },
+      "failures": [],
+      "status": "pass"
+    },
+    "l1": {
+      "capability_risk_tags": [],
+      "failures": [],
+      "pattern_hits": {
+        "dynamic_shell_usage": false,
+        "external_posting": false,
+        "payment_authority": false,
+        "remote_exec_pattern": false,
+        "secret_handling": false
+      },
+      "reason_codes": [],
+      "scan_status": "clean",
+      "status": "clean",
+      "verify_status": "clean"
+    },
+    "l2": {
+      "compatibility_score": 0.9,
+      "dependency_flags": {
+        "has_os_metadata": false,
+        "mentions_node": false,
+        "mentions_python": false,
+        "mentions_shell": false,
+        "requires_network": false,
+        "requires_shell": false
+      },
+      "os": [
+        "unknown"
+      ],
+      "runtime": [
+        "markdown"
+      ],
+      "status": "pass",
+      "systems": []
+    }
+  },
+  "evidence": {
+    "similarity_token_count": 264,
+    "text_hash": "153669bebbd010f6ec3fd41b097998bcce246b636c0084ea4ca9d5f8e4d74d32"
+  },
+  "intent_tags": {
+    "negative": [],
+    "positive": [
+      "intent.positive.classify_expenses"
+    ]
+  },
+  "name": "Bank Reconciliation Agent",
+  "normalized_tags": [
+    "domain.accounting",
+    "domain.ap",
+    "domain.ar",
+    "domain.audit",
+    "domain.finance",
+    "domain.investing",
+    "domain.payroll",
+    "domain.reconciliation",
+    "domain.tax"
+  ],
+  "permissions": {
+    "network": "unknown",
+    "read_fs": "yes",
+    "shell": "blocked",
+    "write_fs": "limited"
+  },
+  "risk_tags": [],
+  "scores": {
+    "compatibility": 0.9,
+    "finance_relevance": 14,
+    "fit": 99,
+    "quality": 1.0,
+    "security": 1.0
+  },
+  "slug": "bank-reconciliation-agent",
+  "source": {
+    "discovery_reasons": [
+      "search:reconciliation"
+    ],
+    "owner": "samledger67-dotcom",
+    "type": "clawhub",
+    "url": "https://clawhub.ai/samledger67-dotcom/bank-reconciliation-agent",
+    "version": "1.0.0"
+  },
+  "source_tags": [
+    "accounting",
+    "audit",
+    "author:PrecisionLedger",
+    "bank",
+    "close",
+    "finance",
+    "qbo",
+    "reconciliation"
+  ],
+  "status": {
+    "publishable": false,
+    "stage": "deferred_review",
+    "verification_scope": "L0-L2 only"
+  },
+  "upstream": {
+    "detail": {
+      "createdAt": 1773728166232,
+      "moderation": {},
+      "stats": {
+        "comments": 0,
+        "downloads": 429,
+        "installsAllTime": 2,
+        "installsCurrent": 2,
+        "stars": 0,
+        "versions": 1
+      },
+      "updatedAt": 1778491969082
+    },
+    "scan_summary": {
+      "capabilityTags": [],
+      "hasWarnings": true,
+      "status": "clean"
+    },
+    "verify_summary": {
+      "decision": "pass",
+      "ok": true,
+      "reasons": []
+    }
+  }
+}

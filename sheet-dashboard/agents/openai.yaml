@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sheet Dashboard"
+  short_description: "Build styled Maybe Sheet dashboards with SQL charts"
+  default_prompt: "Use $sheet-dashboard to create a report-grade Maybe Sheet dashboard: plan the dashboard story, audience, industry style, layout language, SQL-backed charts, renderer specs, and B:N chart layout before mutating the sheet."

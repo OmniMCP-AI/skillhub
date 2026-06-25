@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>金融 Agent Skill 对比报告</title>
+  <style>
+    :root {
+      --bg: #f6f1e8;
+      --panel: #fffdfa;
+      --ink: #1e1f1b;
+      --muted: #5e625a;
+      --line: #d9ccb9;
+      --accent: #9c4f21;
+      --accent-2: #1f5c5c;
+      --good: #dceedd;
+      --warn: #fff1c9;
+      --risk: #f8d9d2;
+      --chip: #f3e3cf;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(156, 79, 33, 0.08), transparent 30%),
+        linear-gradient(180deg, #fbf7f0 0%, var(--bg) 100%);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    .page {
+      width: min(1200px, calc(100vw - 32px));
+      margin: 24px auto 48px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #fff7ec 0%, #fffdfa 65%, #f3ede4 100%);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 28px 32px;
+      box-shadow: 0 20px 40px rgba(51, 42, 31, 0.06);
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    h1 {
+      font-size: clamp(30px, 4vw, 48px);
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin-bottom: 14px;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: var(--chip);
+      color: #5f3a15;
+      font-size: 13px;
+      border: 1px solid #e3c9a4;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(12, 1fr);
+      margin-top: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 22px 24px;
+      box-shadow: 0 8px 24px rgba(47, 37, 28, 0.04);
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .half {
+      grid-column: span 6;
+    }
+
+    .third {
+      grid-column: span 4;
+    }
+
+    .score {
+      font-size: 40px;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .score-note {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 12px 10px;
+      border-bottom: 1px solid #e7ddd0;
+    }
+
+    th {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      background: #fbf7f2;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .label {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .good {
+      background: var(--good);
+      color: #205d2f;
+    }
+
+    .warn {
+      background: var(--warn);
+      color: #805d00;
+    }
+
+    .risk {
+      background: var(--risk);
+      color: #8b372b;
+    }
+
+    .accent {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .section-intro {
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    ul {
+      margin: 8px 0 0 18px;
+      padding: 0;
+    }
+
+    li + li {
+      margin-top: 6px;
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .source-list code {
+      font-size: 12px;
+      word-break: break-all;
+    }
+
+    @media (max-width: 900px) {
+      .half,
+      .third {
+        grid-column: 1 / -1;
+      }
+
+      .hero,
+      .card {
+        padding: 20px;
+      }
+
+      th, td {
+        padding: 10px 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <h1>金融 / 财务多 Agent Skill 对比报告</h1>
+      <p>
+        这份报告对比了你当前面向金融/财务场景的 skill 体系，与 OpenAI Codex 风格的
+        <strong>DataAnalystAgent</strong> skill 架构，并把差距转译成适合你业务的产品与架构决策。
+      </p>
+      <p>
+        结论先说：<span class="accent">你当前这套在金融可追溯性和 MaybeAI 执行深度上更强</span>，
+        而 Codex 参考体系更强在
+        <span class="accent">插件级路由、状态管理、工作流拆分和稳定交付契约</span>。
+      </p>
+      <div class="meta">
+        <span class="chip">业务上下文：FinClaw / Hermes / MaybeAI Sheet</span>
+        <span class="chip">当前对比范围：4 个核心 skill</span>
+        <span class="chip">参考范围：16 个 analytics skill</span>
+        <span class="chip">生成日期：2026-06-18</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card third">
+        <div class="score">8.2 / 10</div>
+        <p><strong>领域契合度</strong></p>
+        <p class="score-note">你现在这套已经很贴合财报分析、老板汇报和公式可追溯 workbook 交付。</p>
+      </article>
+      <article class="card third">
+        <div class="score">5.6 / 10</div>
+        <p><strong>框架成熟度</strong></p>
+        <p class="score-note">短板不在金融逻辑，而在路由、可复用上下文、验证闸门和不同交付模式的产品化封装。</p>
+      </article>
+      <article class="card third">
+        <div class="score">7.0 / 10</div>
+        <p><strong>接近 Codex 程度</strong></p>
+        <p class="score-note">你已经有分层 skill 了，但 Codex 在“router → worker → delivery”职责切分上更成熟。</p>
+      </article>
+
+      <article class="card full">
+        <h2>1. 总体对比</h2>
+        <p class="section-intro">
+          这一部分从你的业务目标出发做高层对比：你要建设的是一套能读取源文件、标准化、分析、生成报告，并且能稳定反复跑生产任务的金融/财务多 Agent 框架。
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>维度</th>
+              <th>你当前的体系</th>
+              <th>Codex DataAnalystAgent 参考体系</th>
+              <th>对你业务的含义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>系统形态</td>
+              <td>4 个更深的领域 skill：sheet 执行、金融契约、公式链路、可追溯报告构建</td>
+              <td>16 个更细的 skill：router、context、validation、report、dashboard、KPI、diagnostics、notebooks、SQL、visualization</td>
+              <td>你是领域优先，Codex 是工作流优先。对金融平台来说，最终需要两者结合。</td>
+            </tr>
+            <tr>
+              <td>金融专业化</td>
+              <td><span class="label good">更强</span> 明确的老板汇报模板、三表流程、审计话术、公式溯源</td>
+              <td><span class="label warn">更通用</span> 更偏广义 analytics，不是金融专用</td>
+              <td>你的 finance contract 应该保留为领域核心，不要被通用 analytics router 替代。</td>
+            </tr>
+            <tr>
+              <td>路由模型</td>
+              <td>`finclaw-report-analysis` 把 contract、角色映射、intake、输出、fallback、编排都混在一起</td>
+              <td>`index` 是专门的 router skill，run order 和下游 skill 选择都更清晰</td>
+              <td>你下一步最关键的升级，是把 “router” 从 “finance contract” 和 “worker skills” 里拆出来。</td>
+            </tr>
+            <tr>
+              <td>状态 / 记忆</td>
+              <td>这 4 个当前 skill 中，几乎没有清晰的持久化上下文管理层</td>
+              <td>`user-context` 是一等公民层，包含 preflight、保存的上下文、source readiness 和 onboarding 逻辑</td>
+              <td>对反复使用的 CFO / 财务用户，这是明显缺口。建议补公司画像、数据源注册表和常用指标记忆。</td>
+            </tr>
+            <tr>
+              <td>数据接入与源准备</td>
+              <td>文件解析和 MaybeAI workbook 执行很强，但 source readiness 分散在不同 skill 中</td>
+              <td>在分析或报告生成前，先有显式 preflight 和 source guardrail</td>
+              <td>这对生产很重要，因为财务任务经常失败在文件不全、数据源权威性不足或访问权限不匹配。</td>
+            </tr>
+            <tr>
+              <td>验证模型</td>
+              <td><span class="label good">核心不错</span> 有 `validate_report.py`、consistency checks、readback rules、formula verification</td>
+              <td><span class="label good">覆盖更广</span> validation 分布在 workflow contract、report completion gate 和 source verification 规则中</td>
+              <td>你的方向是对的，下一步是把验证做成可复用、分阶段的能力。</td>
+            </tr>
+            <tr>
+              <td>输出模式</td>
+              <td>强 MaybeAI Sheet 导向；有部分本地 xlsx 流程；也有 dashboard/report 引用</td>
+              <td>交付模式分支更清晰：inline、report、dashboard、docs/slides/pdf/html</td>
+              <td>如果你的产品要服务 CFO、FP&amp;A、会计和经营团队，就需要独立 delivery skill，而不是单一 sheet 路径主导。</td>
+            </tr>
+            <tr>
+              <td>Pipeline 拆分</td>
+              <td>raw-to-report 主链路已经有了，但 simulation、dashboard-only、summary-only 和 scenario 分支偏薄</td>
+              <td>按分析任务类型拆得更细，可组合性更强</td>
+              <td>对深度财务分析已经接近可用，但对更广义的财务运营平台还偏窄。</td>
+            </tr>
+            <tr>
+              <td>可测试性 / 产品硬化</td>
+              <td>有一些稳定脚本，但这 4 个对比 skill 里看不到明确测试套件</td>
+              <td>更像插件工程体系，包含 `user-context` 测试和更正式的子规格结构</td>
+              <td>在放大规模前，建议补 contract tests、routing tests 和基于财务样本的 regression tests。</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card full">
+        <h2>2. 当前 Skill 体系评估</h2>
+        <p class="section-intro">
+          这张表不是把 4 个 skill 当文档看，而是把它们当成产品模块来评估。
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Skill</th>
+              <th>强项</th>
+              <th>当前框架中的弱点</th>
+              <th>业务判断</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>maybeai-sheet-skill</strong></td>
+              <td>作为 workbook CRUD、worksheet targeting、SQL result sheet、readback、formatting 和操作 playbook 的执行层，非常扎实。</td>
+              <td>它是底层 operator，不是 workflow router，不应该承载业务语义。</td>
+              <td><span class="label good">保留为基础层</span> 这是你的 spreadsheet runtime 层。</td>
+            </tr>
+            <tr>
+              <td><strong>finclaw-report-analysis</strong></td>
+              <td>金融产品契约很强：user intake、老板汇报输出、审计预期、角色映射、fallback 行为都比较完整。</td>
+              <td>职责偏重，但它已经承担现有对外契约和兼容入口，不适合在当前仓库里直接动刀重构。</td>
+              <td><span class="label warn">保持不动</span> 作为现有兼容层和参考契约保留，本轮不改 `~/work/ai/maybeai-uni/skillhub` 下这份 skill。</td>
+            </tr>
+            <tr>
+              <td><strong>traceable-financial-analysis</strong></td>
+              <td>比 `finclaw-report-analysis` 更像干净的 business layer；`build/validate/prepare` 这些稳定脚本也有价值。</td>
+              <td>当前与 `finclaw-report-analysis` 有重叠，但它的边界更适合继续演进成新的主合同层和工作流入口。</td>
+              <td><span class="label good">作为改造主线</span> 后续 router、context、validation、delivery 分层都围绕它展开，比直接改旧 skill 风险更低。</td>
+            </tr>
+            <tr>
+              <td><strong>maybeai-formula-report</strong></td>
+              <td>作为 raw-value tabs + formula-driven report tabs 的中间层非常优秀，这是金融场景下真正的差异化能力。</td>
+              <td>它本来就是窄层能力；在生产里要完整成立，仍然依赖上游 contract 和下游 verification。</td>
+              <td><span class="label good">战略资产</span> 保持小而可复用，不要把金融叙事规则污染进来。</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card full">
+        <h2>3. 按你图里的 Pipeline 覆盖度评估</h2>
+        <p class="section-intro">
+          这里按照你图里的 raw data → calculation → analysis → simulation → charts → summary 流程，再加最上层的 decision / orchestration 层来评估。
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Pipeline 阶段</th>
+              <th>当前覆盖度</th>
+              <th>相关当前 skill</th>
+              <th>Codex 参考模式</th>
+              <th>缺口</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Raw data</td>
+              <td><span class="label good">强</span></td>
+              <td>`maybeai-sheet-skill`、`traceable-financial-analysis` 脚本、以及相邻的 `finclaw-financial-analysis-runner` 解析脚本</td>
+              <td>`user-context`、`validate-data`、source-readiness 规则、`sql-runner` 式 handoff discipline</td>
+              <td>需要一个一等公民的 intake / preflight skill，在解析前先决定 source authority。</td>
+            </tr>
+            <tr>
+              <td>Calculation</td>
+              <td><span class="label good">核心不错</span></td>
+              <td>`maybeai-formula-report`、workbook recalculation rules、formula verification</td>
+              <td>`sql-runner`、notebooks、semantic-layer-guided source logic</td>
+              <td>需要一个 finance-semantic calculation skill，承载可复用 KPI 公式，而不只是 workbook 公式。</td>
+            </tr>
+            <tr>
+              <td>Analysis</td>
+              <td><span class="label good">金融分析叙事较强</span></td>
+              <td>`finclaw-report-analysis`、`traceable-financial-analysis`</td>
+              <td>`product-business-analysis`、`metric-diagnostics`、`kpi-reporting`</td>
+              <td>需要更专门的子 skill：variance analysis、anomaly diagnosis、working capital、cash runway、budget vs actual、consolidation。</td>
+            </tr>
+            <tr>
+              <td>Simulation</td>
+              <td><span class="label risk">弱</span></td>
+              <td>这 4 个当前 skill 里没有明确对应层</td>
+              <td>Codex 参考也不是金融模拟专长，但它的拆分方式更容易扩展</td>
+              <td>需要一个 scenario skill：assumptions sheet、sensitivity table、forecast driver、covenant guardrail。</td>
+            </tr>
+            <tr>
+              <td>Charts</td>
+              <td><span class="label warn">中等</span></td>
+              <td>`maybeai-sheet-skill` 的 formatting/chart endpoints；`finclaw-report-analysis` 里也引用了 `sheet-dashboard`</td>
+              <td>`visualize-data`、`build-dashboard`，并且有更明确的 rendering 选择</td>
+              <td>需要专门的 finance-visualization skill，带 chart QA 规则和 CFO-safe 模板。</td>
+            </tr>
+            <tr>
+              <td>Summary</td>
+              <td><span class="label warn">中等</span></td>
+              <td>已经有 boss-review template 和 final contract</td>
+              <td>`build-report`、export mode branches、report-specific completion</td>
+              <td>需要更多输出变体：board deck、monthly close memo、audit pack、lender pack、简版 CFO brief。</td>
+            </tr>
+            <tr>
+              <td>Decision / orchestration</td>
+              <td><span class="label warn">中等</span></td>
+              <td>`finclaw-report-analysis` 里已经包含 role map 和 sequence guidance</td>
+              <td>`index` + `user-context` + focused skill routing</td>
+              <td>把 router 从 business contract 中拆出来，并补 route type、confidence gate 和 capability registry check。</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card half">
+        <h2>4. 你已经更先进的地方</h2>
+        <ul>
+          <li>你的公式链路设计比通用 Codex 参考更适合金融工作，`maybeai-formula-report` 是真实优势。</li>
+          <li>你的 business contract 语言更 CFO-ready，而 Codex 参考本质上是可迁移的 analytics 基础设施，不是金融产品。</li>
+          <li>你对 readback、recalculation、audit visibility 和固定 boss-review 结构的要求，更适合高信任财务交付。</li>
+          <li>你这套已经比 Codex 参考更接近 finance copilot，后者要做严肃会计/财务工作还需要额外领域化。</li>
+        </ul>
+      </article>
+
+      <article class="card half">
+        <h2>5. Codex 更先进的地方</h2>
+        <ul>
+          <li>有专门的 router skill，而不是把 orchestration 埋进 domain contract。</li>
+          <li>在开工前先做 persistent context 和 source-readiness 处理，也就是 `user-context` 这一层。</li>
+          <li>按任务类型拆得更清楚：report、dashboard、KPI design、diagnostics、SQL、notebooks、visualization。</li>
+          <li>交付模式更有纪律：inline vs report vs dashboard vs document conversion。</li>
+          <li>整体更像插件产品工程：completion gate、source authority 规则、可复用 spec、以及更清晰的生命周期控制。</li>
+        </ul>
+      </article>
+
+      <article class="card full">
+        <h2>6. 建议目标架构</h2>
+        <p class="section-intro">
+          如果你的目标是“更稳、更像 OpenAI Codex，同时不丢掉金融深度”，我建议走下面这条路径。
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>优先级</th>
+              <th>新增 / 调整项</th>
+              <th>为什么重要</th>
+              <th>对应的 Codex 式模式</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>P0</td>
+              <td>新增专门的 finance router skill，比如 `finclaw-index`</td>
+              <td>它负责把请求分流到 intake、结账分析、差异分析、正式报告、dashboard、情景模拟、审计复核或追问答疑等路径；下游主工作流默认落到 `traceable-financial-analysis`，而不是直接改写 `finclaw-report-analysis`。</td>
+              <td>采用 `index` router 与 worker skill 分离模式；`traceable-financial-analysis` 作为主要 worker contract。</td>
+            </tr>
+            <tr>
+              <td>P0</td>
+              <td>新增 `finclaw-user-context`</td>
+              <td>存公司画像、主体结构、会计科目口径、数据源优先级、历史报告风格、常用 KPI、默认期间口径和访问准备状态；每次分析前先做 preflight，决定是直接进入 `traceable-financial-analysis`，还是先补文件 / 补权限 / 补上下文。</td>
+              <td>采用 `user-context` 的 preflight + saved context 模式，但领域内容改成财务专用。</td>
+            </tr>
+            <tr>
+              <td>P1</td>
+              <td>拆开 business contract 和 execution contract</td>
+              <td>这一步不去改 `finclaw-report-analysis`。改造方式是把 `traceable-financial-analysis` 提升为新的主 contract：它拥有产品语义、审计要求和报告边界；执行细节再继续下沉到 `maybeai-formula-report`、`maybeai-sheet` 和后续 worker skill。</td>
+              <td>采用 router skill + focused skill body 分层；旧 `finclaw-report-analysis` 保持兼容，不纳入本轮重构。</td>
+            </tr>
+            <tr>
+              <td>P1</td>
+              <td>按分析任务类型增加 finance-focused worker skill</td>
+              <td>比如：`variance-analysis`、`cash-flow-diagnostics`、`working-capital-review`、`consolidation-review`、`budget-vs-actual`、`scenario-planning`。</td>
+              <td>`metric-diagnostics`、`kpi-reporting`、`product-business-analysis` 这种专项化模式</td>
+            </tr>
+            <tr>
+              <td>P1</td>
+              <td>新增 `finclaw-validate-data` skill</td>
+              <td>把 source completeness、statement consistency、period alignment、unit normalization 和 mapping audit 集中起来。</td>
+              <td>Codex 式 validation skill + completion gate</td>
+            </tr>
+            <tr>
+              <td>P1</td>
+              <td>新增专门的 finance visualization / dashboard skill</td>
+              <td>把图表设计和 worksheet mechanics 拆开。你需要 chart family、CFO-safe layout 和输出 QA。</td>
+              <td>`visualize-data` + `build-dashboard` 分层</td>
+            </tr>
+            <tr>
+              <td>P2</td>
+              <td>新增明确的 delivery skill</td>
+              <td>MaybeAI workbook、HTML board memo、PPT、PDF、lender pack、audit appendix 应该分别有不同产物路径。</td>
+              <td>`build-report` + report-to-doc/slides/pdf 分支</td>
+            </tr>
+            <tr>
+              <td>P2</td>
+              <td>新增基于 fixture 的 regression tests</td>
+              <td>使用真实或脱敏季度报表样本，验证 routing、parsed facts、KPI 输出、workbook 公式和报告分区。</td>
+              <td>插件级生命周期硬化</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card full">
+        <h2>7. 建议的金融框架 Skill 分层</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>层级</th>
+              <th>建议 skill</th>
+              <th>用途</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Router</td>
+              <td>`finclaw-index`</td>
+              <td>顶层意图路由、模式选择、能力闸门、skill 编排。</td>
+            </tr>
+            <tr>
+              <td>Persistent context</td>
+              <td>`finclaw-user-context`</td>
+              <td>记住公司、主体结构、数据源偏好、模板、财年日历和周期性交付偏好。</td>
+            </tr>
+            <tr>
+              <td>Source intake</td>
+              <td>`finclaw-intake`, `finclaw-validate-data`</td>
+              <td>文件支持、源完整性、源权威性、数据质量、期间校验。</td>
+            </tr>
+            <tr>
+              <td>Execution foundation</td>
+              <td>`maybeai-sheet`, `maybeai-formula-report`</td>
+              <td>workbook 读写、公式激活、readback、recalculation、export。</td>
+            </tr>
+            <tr>
+              <td>Domain core</td>
+              <td>`traceable-financial-analysis`</td>
+              <td>金融业务契约、可追溯性要求、报告语义、审计权威；也是后续新框架的默认主入口。</td>
+            </tr>
+            <tr>
+              <td>Compatibility</td>
+              <td>`finclaw-report-analysis`</td>
+              <td>保留现有对外契约和兼容入口，本轮不修改源码；仅作为参考和过渡层存在。</td>
+            </tr>
+            <tr>
+              <td>Analytical workers</td>
+              <td>`cash-flow-diagnostics`, `budget-variance-analysis`, `consolidation-review`, `profitability-analysis`, `working-capital-analysis`, `scenario-planning`</td>
+              <td>按不同财务任务拆分的 focused worker skill。</td>
+            </tr>
+            <tr>
+              <td>Visualization</td>
+              <td>`finclaw-visualize-data`, `finclaw-dashboard`</td>
+              <td>图表选择、board-ready 可视化、KPI 汇总页、dashboard 渲染。</td>
+            </tr>
+            <tr>
+              <td>Delivery</td>
+              <td>`finclaw-build-report`, `finclaw-report-to-ppt`, `finclaw-report-to-html`, `finclaw-audit-pack`</td>
+              <td>按不同产物做 finishing 和导出。</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card full">
+        <h2>8. `finclaw-index` 与 `finclaw-user-context` 设计细化</h2>
+        <p class="section-intro">
+          下面这部分可以直接当成后续拆 skill 的设计草案。目标不是让它们“什么都做”，而是让它们只做自己的控制面职责，然后把主分析流程稳定交给 `traceable-financial-analysis`。
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Skill</th>
+              <th>输入</th>
+              <th>核心职责</th>
+              <th>不该承担的职责</th>
+              <th>标准输出</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>`finclaw-index`</strong></td>
+              <td>用户请求、附件/路径信息、用户上下文摘要、当前可用能力状态</td>
+              <td>识别意图；判定属于 intake、结账分析、差异分析、正式报告、dashboard、情景模拟、审计复核还是 Q&amp;A；选择主 skill；决定是否先走 preflight 或 data validation；拼出 route plan。</td>
+              <td>不直接写 workbook，不直接生成财务结论，不直接做底层解析或公式写入。</td>
+              <td>结构化路由结果：`request_type`、`needs_preflight`、`primary_skill`、`supporting_skills`、`blocking_gaps`、`delivery_mode`。</td>
+            </tr>
+            <tr>
+              <td><strong>`finclaw-user-context`</strong></td>
+              <td>用户身份或会话信息、已有公司记录、源配置记录、历史交付偏好、当前请求</td>
+              <td>做 preflight；读取和更新公司画像、主体结构、会计科目口径、常用 KPI、默认模板、默认时间粒度、数据源优先级、权限准备状态；告诉 router 当前能否直接开跑。</td>
+              <td>不替代业务分析，不负责产出正式报告，不承载图表渲染和 workbook 操作。</td>
+              <td>结构化上下文结果：`context_summary`、`source_readiness`、`preferred_templates`、`default_entity_scope`、`known_metric_defs`、`missing_requirements`。</td>
+            </tr>
+          </tbody>
+        </table>
+        <table style="margin-top: 18px;">
+          <thead>
+            <tr>
+              <th>模块</th>
+              <th>建议子能力</th>
+              <th>决策点</th>
+              <th>与 `traceable-financial-analysis` 的关系</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>`finclaw-index`</td>
+              <td>`intent-classifier`、`route-planner`、`capability-gate`、`delivery-mode-selector`</td>
+              <td>现在是先补文件、先补权限、先补上下文，还是已经可以进入主分析流程。</td>
+              <td>它不做分析，只负责把请求稳定送到 `traceable-financial-analysis` 或相关 worker skill。</td>
+            </tr>
+            <tr>
+              <td>`finclaw-user-context`</td>
+              <td>`company-profile`、`source-registry`、`metric-memory`、`template-preference`、`readiness-check`</td>
+              <td>当前公司是谁、用哪套口径、哪些源是可信源、哪些模板是默认模板、当前是否缺关键输入。</td>
+              <td>它为 `traceable-financial-analysis` 提供上下文地基，避免每次都从零开始问和猜。</td>
+            </tr>
+          </tbody>
+        </table>
+        <table style="margin-top: 18px;">
+          <thead>
+            <tr>
+              <th>最小运行链路</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1. 用户提问 → `finclaw-index`</td>
+              <td>先判断任务类型，以及是不是财务正式工作流请求。</td>
+            </tr>
+            <tr>
+              <td>2. `finclaw-index` → `finclaw-user-context`</td>
+              <td>拿公司、实体范围、默认模板、可信数据源和 readiness 状态。</td>
+            </tr>
+            <tr>
+              <td>3. 若缺关键输入 → 停在 preflight</td>
+              <td>比如缺报表、缺权限、缺期间范围、缺实体选择，此时先补信息，不进入主分析。</td>
+            </tr>
+            <tr>
+              <td>4. 若上下文齐备 → `traceable-financial-analysis`</td>
+              <td>进入主 contract skill，开始财务业务语义、审计规则和报告边界控制。</td>
+            </tr>
+            <tr>
+              <td>5. 再下沉到执行层</td>
+              <td>需要 workbook / 公式链路时，调用 `maybeai-sheet`、`maybeai-formula-report`、`finclaw-validate-data` 和后续 worker skill。</td>
+            </tr>
+            <tr>
+              <td>6. 最终回到 delivery 层</td>
+              <td>根据 router 选定的 delivery mode 输出 MaybeAI workbook、HTML、PPT、audit pack 等产物。</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card full">
+        <h2>9. 实操建议</h2>
+        <p>
+          针对你的业务上下文，我<strong>不建议</strong> 1:1 照抄 Codex 参考结构。它在平台治理上更成熟，但本质上是通用型。你的优势在于，你已经掌握了 finance workflow、audit 语言、boss-review 结构，以及 workbook lineage 模型。
+        </p>
+        <p>
+          更合理的路线是：<strong>保留你的金融专用核心</strong>，然后在外层补上 Codex 风格的 control plane：
+        </p>
+        <ul>
+          <li>保留 `maybeai-sheet-skill` 和 `maybeai-formula-report` 作为稳定执行层。</li>
+          <li>明确采用 `traceable-financial-analysis` 作为后续增强和分层改造的主 contract skill。</li>
+          <li>保持 `finclaw-report-analysis` 不动，继续作为兼容层和历史契约存在，不在 `~/work/ai/maybeai-uni/skillhub` 里直接重构它。</li>
+          <li>补一个真正的 router、一个真正的 user-context/preflight skill、一个真正的 validation skill，以及按任务拆分的 finance worker skill，并统一挂到 `traceable-financial-analysis` 这条主线上。</li>
+          <li>把 simulation、dashboard、delivery 变体做成一等 skill，而不是塞在一个大 contract 文件里的附属说明。</li>
+        </ul>
+        <p>
+          这样改完之后，你的框架会同时变得 <strong>更稳</strong>、<strong>更像 Codex</strong>，同时在真实会计和财务运营场景里仍然会比通用 analytics 系统更强。
+        </p>
+      </article>
+
+      <article class="card full source-list">
+        <h2>10. 依据文件</h2>
+        <p class="small">这份对比基于以下文件内容得出。</p>
+        <table>
+          <thead>
+            <tr>
+              <th>类型</th>
+              <th>已审阅文件</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>当前 skill</td>
+              <td>
+                <code>maybeai-sheet-skill/SKILL.md</code><br>
+                <code>finclaw-report-analysis/SKILL.md</code><br>
+                <code>traceable-financial-analysis/SKILL.md</code><br>
+                <code>maybeai-formula-report/SKILL.md</code><br>
+                <code>maybeai-sheet-skill/agents/openai.yaml</code><br>
+                <code>maybeai-formula-report/agents/openai.yaml</code>
+              </td>
+            </tr>
+            <tr>
+              <td>当前脚本</td>
+              <td>
+                <code>traceable-financial-analysis/scripts/build_report.py</code><br>
+                <code>traceable-financial-analysis/scripts/validate_report.py</code><br>
+                <code>traceable-financial-analysis/scripts/prepare_traceable_boss_review_inputs.py</code><br>
+                <code>finclaw-three-statement-foundation/scripts/run_three_statement_foundation.py</code><br>
+                <code>finclaw-financial-analysis-runner/scripts/finclaw-parse-upload.py</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Codex 参考</td>
+              <td>
+                <code>~/Downloads/DataAnalystAgent/skills/index/SKILL.md</code><br>
+                <code>~/Downloads/DataAnalystAgent/skills/user-context/SKILL.md</code><br>
+                <code>~/Downloads/DataAnalystAgent/skills/build-report/SKILL.md</code><br>
+                <code>~/Downloads/DataAnalystAgent/skills/build-dashboard/SKILL.md</code><br>
+                <code>~/Downloads/DataAnalystAgent/skills/validate-data/SKILL.md</code><br>
+                <code>~/Downloads/DataAnalystAgent/skills/visualize-data/SKILL.md</code><br>
+                <code>~/Downloads/DataAnalystAgent/skills/sql-runner/SKILL.md</code><br>
+                <code>~/Downloads/DataAnalystAgent/skills/spreadsheets/SKILL.md</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,122 @@
+{
+  "compatibility": {
+    "agents": [
+      "codex",
+      "openclaw",
+      "generic"
+    ],
+    "dependencies": [],
+    "os": [
+      "unknown"
+    ],
+    "runtime": [
+      "markdown"
+    ]
+  },
+  "evaluation": {
+    "l0_static": "pass",
+    "l1_security": "clean",
+    "l2_compat": "pass",
+    "l3_sandbox": "not_run",
+    "l4_benchmark": {
+      "avg_latency_seconds": null,
+      "failure_types": [],
+      "success_rate": null,
+      "tier": "not_run"
+    }
+  },
+  "evidence": {
+    "l0": {
+      "checks": {
+        "finance_relevance": 14,
+        "has_frontmatter": true,
+        "has_skill_md": true,
+        "has_structure": true,
+        "has_summary": true,
+        "has_title": true,
+        "quality_score": 1.0
+      },
+      "failures": [],
+      "status": "pass"
+    },
+    "l1": {
+      "capability_risk_tags": [],
+      "failures": [],
+      "pattern_hits": {
+        "dynamic_shell_usage": false,
+        "external_posting": false,
+        "payment_authority": false,
+        "remote_exec_pattern": false,
+        "secret_handling": false
+      },
+      "reason_codes": [],
+      "scan_status": "clean",
+      "status": "clean",
+      "verify_status": "clean"
+    },
+    "l2": {
+      "compatibility_score": 0.9,
+      "dependency_flags": {
+        "has_os_metadata": false,
+        "mentions_node": false,
+        "mentions_python": false,
+        "mentions_shell": false,
+        "requires_network": false,
+        "requires_shell": false
+      },
+      "os": [
+        "unknown"
+      ],
+      "runtime": [
+        "markdown"
+      ],
+      "status": "pass",
+      "systems": []
+    },
+    "text_hash": "153669bebbd010f6ec3fd41b097998bcce246b636c0084ea4ca9d5f8e4d74d32"
+  },
+  "fit_score": 99,
+  "intent_mapping": {
+    "negative": [],
+    "positive": [
+      "classify expenses"
+    ]
+  },
+  "permissions": {
+    "network": "unknown",
+    "read_fs": "yes",
+    "secret_requirement": "unknown",
+    "shell": "blocked",
+    "write_fs": "limited"
+  },
+  "schema_version": "1.0",
+  "skill": {
+    "name": "Bank Reconciliation Agent",
+    "slug": "bank-reconciliation-agent",
+    "source_type": "clawhub",
+    "source_url": "https://clawhub.ai/samledger67-dotcom/bank-reconciliation-agent",
+    "verified": true,
+    "version": "1.0.0"
+  },
+  "status": "deferred_review",
+  "tags": [
+    "agent.codex",
+    "agent.openclaw",
+    "domain.accounting",
+    "domain.ap",
+    "domain.ar",
+    "domain.audit",
+    "domain.finance",
+    "domain.investing",
+    "domain.payroll",
+    "domain.reconciliation",
+    "domain.tax",
+    "eval.l0.pass",
+    "eval.l1.clean",
+    "eval.l2.pass",
+    "perm.network.unknown",
+    "perm.read_fs.yes",
+    "perm.shell.blocked",
+    "perm.write_fs.limited"
+  ]
+}

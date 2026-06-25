@@ -27,6 +27,7 @@
 
 - `write_new_worksheet`
 - `formula/set`
+- `formula/batch_set`
 - `list_worksheets`
 - `delete_worksheet`
 - `recalculate_formulas`
@@ -38,9 +39,10 @@
 ```text
 Phase 1: write_new_worksheet 写 raw sheets
 Phase 2: write_new_worksheet 写 report sheet scaffold
-Phase 3: formula/set 激活派生单元格
-Phase 4: recalculate_formulas 在末尾统一重算一次
-Phase 5: read_sheet 回读关键单元格验收
+Phase 3: formula/batch_set 激活成块派生区域
+Phase 4: formula/set 只补零星单元格
+Phase 5: recalculate_formulas 或 batch_set 的 workbook 重算
+Phase 6: read_sheet 回读关键单元格验收
 ```
 
 ## 必记规则
@@ -73,17 +75,33 @@ Phase 5: read_sheet 回读关键单元格验收
 
 - `scripts/write_worksheet.sh`
 
-### 3. `formula/set` 之后仍然要统一 `recalculate_formulas`
+### 3. 优先 `formula/batch_set`，只在稀疏补丁时再用 `formula/set`
+
+典型报表不要按单元格循环打 `formula/set`。
+
+优先做法：
+
+- 把公式按矩形块分组
+- 用一次 `formula/batch_set` 写一个或多个 block
+- `recalculate_mode` 设成 `workbook` 或末尾再统一重算
+
+Phase 1 边界：
+
+- 只适合普通 workbook 公式
+- 不要拿它写 `=SQL(...)`
+- 不要拿它写 pivot formula
+
+### 4. `formula/set` / `formula/batch_set` 之后仍然要统一考虑 workbook 重算
 
 不要假设单次 `formula/set` 一定会让最终 workbook 所有依赖链都完成计算。
 
 在完整流程里，最后统一重算一次最稳。
 
-单格修复脚本：
+单格或批量脚本：
 
 - `scripts/set_formula_and_recalc.sh`
 
-### 4. 删除 worksheet 时优先用 `gid`
+### 5. 删除 worksheet 时优先用 `gid`
 
 不要依赖不稳定的 `worksheet_id` 理解。
 
@@ -93,7 +111,7 @@ Phase 5: read_sheet 回读关键单元格验收
 2. 确认目标 `gid`
 3. `delete_worksheet` with `uri?gid=N`
 
-### 5. 验收只看通用失败模式
+### 6. 验收只看通用失败模式
 
 这个 skill 的验收不应该写死业务 sheet 名、固定 row map、固定指标。
 

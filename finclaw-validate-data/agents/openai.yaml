@@ -1,0 +1,8 @@
+interface:
+  display_name: "FinClaw Validate Data"
+  short_description: "Validate finance source quality, consistency, and blocking issues before delivery."
+  default_prompt: "Use $finclaw-validate-data to check finance source completeness, period alignment, metric consistency, and whether blocking issues must be resolved first."
+
+policy:
+  allow_implicit_invocation: true
+

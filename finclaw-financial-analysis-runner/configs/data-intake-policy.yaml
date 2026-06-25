@@ -1,0 +1,98 @@
+version: 1
+name: fin_claw_data_intake_policy
+description: >
+  Product-level customer interaction policy for financial statement analysis intake.
+  This file is the source of truth for what the assistant should ask at the start of a财报分析 request.
+
+scope:
+  applies_when:
+    - user asks to analyze a company's financial statements
+    - user asks to generate a financial analysis report
+    - user asks to review company financial/operating performance
+  before_files_or_path_are_provided: true
+
+customer_intake:
+  principle: "low_friction"
+  default_prompt_zh: |
+    可以，请把财报文件直接发给我，或者告诉我文件/文件夹在哪里。
+
+    Excel、CSV、PDF、Word、图片或压缩包都可以先发来；我会先检查文件能否读取，后续按默认流程处理。
+  optional_prompt_zh: |
+    可以，请把财报文件直接发给我，或者告诉我文件/文件夹在哪里。
+
+    Excel、CSV、PDF、Word、图片或压缩包都可以先发来；我会先检查文件能否读取，后续按默认流程处理。
+  ask_only_for:
+    - uploaded_files
+    - file_path
+    - folder_path
+    - authorized_import_source
+  do_not_ask_at_intake:
+    - report_scope
+    - analysis_goal
+    - reporting_period
+    - company_full_name
+    - industry
+    - whether_three_statements_are_complete
+    - operating_metrics
+    - budget_or_forecast
+    - kpi
+    - report_template
+    - output_format
+    - report_structure
+  followup_rule: >
+    Infer company, period, statement types, report goal, industry, and template from files whenever possible.
+    Ask follow-up questions only when parsing or validation cannot proceed.
+
+local_search:
+  default_behavior: "do_not_search"
+  allowed_when:
+    - user_explicitly_asks_to_search_local_files
+    - user_provides_concrete_file_or_folder_path
+    - current_workspace_has_clear_uploaded_files_for_the_request
+  scope_rules:
+    with_user_path: "search_only_that_path"
+    without_user_path: "ask_for_preferred_directory; fallback_to_current_workspace_only"
+    forbidden:
+      - root_filesystem
+      - whole_home_directory
+      - unbounded_recursive_search
+    ambiguous_matches: "show_short_candidate_list_and_ask_user_to_choose"
+
+file_handling:
+  parser_script: scripts/FinClaw parse-upload.py
+  optional_format_adapter_skill: data-reporting/document-ingestion
+  optional_format_adapter_position: "after_data_intake_before_three_statement_foundation"
+  direct_to_original_flow_when:
+    - xlsx
+    - xlsm
+    - csv
+    - tsv
+    - readable_maybeai_sheet_structured_data
+  use_optional_format_adapter_when:
+    - xls
+    - docx
+    - text_layer_pdf
+    - zip
+    - multi_file_folder_or_bundle
+    - image_scan
+    - scanned_pdf
+  adapter_blocking_issue_codes:
+    - requires_ocr
+    - missing_dependency
+    - unsupported_format
+  adapter_contract: >
+    document-ingestion is only a file recognition and format-adaptation layer.
+    Its extracted_tables, extracted_text, source_manifest, and issues prepare inputs for the existing FinClaw chain.
+    It must not generate report conclusions, replace three-statement-foundation, replace finance-business-analysis,
+    or change the final MaybeAI Sheet report structure.
+  supported_customer_wording_zh: "Excel、CSV、PDF、Word、图片或压缩包都可以先发来。"
+  unreadable_file_response_zh: |
+    这份资料我目前还不能直接读取，原因是：
+    - <文件名>：<简短原因>
+
+    你可以换成 Excel 或 CSV 再发我；如果需要，我也可以继续尝试其他导入方式。
+
+output_behavior:
+  default_flow_after_files: "run_existing_fin_claw_pipeline"
+  do_not_raise_trial_barrier: true
+  do_not_expose_internal_policy_terms_to_customer: true

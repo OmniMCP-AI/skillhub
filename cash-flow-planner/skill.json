@@ -1,0 +1,142 @@
+{
+  "compat_tags": [
+    "agent.codex",
+    "agent.openclaw",
+    "perm.network.yes",
+    "perm.read_fs.yes",
+    "perm.shell.blocked",
+    "perm.write_fs.limited"
+  ],
+  "description": "Build 13-week cash flow forecasts, identify liquidity gaps, and design capital allocation plans for ecommerce businesses navigating inventory cycles and seas...",
+  "eval_tags": [
+    "eval.l0.pass",
+    "eval.l1.clean",
+    "eval.l2.pass"
+  ],
+  "evaluation": {
+    "l0": {
+      "checks": {
+        "finance_relevance": 7,
+        "has_frontmatter": true,
+        "has_skill_md": true,
+        "has_structure": true,
+        "has_summary": true,
+        "has_title": true,
+        "quality_score": 1.0
+      },
+      "failures": [],
+      "status": "pass"
+    },
+    "l1": {
+      "capability_risk_tags": [],
+      "failures": [],
+      "pattern_hits": {
+        "dynamic_shell_usage": false,
+        "external_posting": false,
+        "payment_authority": false,
+        "remote_exec_pattern": false,
+        "secret_handling": false
+      },
+      "reason_codes": [],
+      "scan_status": "clean",
+      "status": "clean",
+      "verify_status": "clean"
+    },
+    "l2": {
+      "compatibility_score": 0.9,
+      "dependency_flags": {
+        "has_os_metadata": false,
+        "mentions_node": false,
+        "mentions_python": false,
+        "mentions_shell": false,
+        "requires_network": true,
+        "requires_shell": false
+      },
+      "os": [
+        "unknown"
+      ],
+      "runtime": [
+        "markdown"
+      ],
+      "status": "pass",
+      "systems": []
+    }
+  },
+  "evidence": {
+    "similarity_token_count": 358,
+    "text_hash": "6946049a1cb32ba63835a77bc1eac087170f6f719b8081ed91dfa16f9aaec863"
+  },
+  "intent_tags": {
+    "negative": [],
+    "positive": [
+      "intent.positive.build_budget_templates",
+      "intent.positive.classify_expenses",
+      "intent.positive.perform_valuation_analysis",
+      "intent.positive.prepare_bookkeeping_checklists"
+    ]
+  },
+  "name": "Cash Flow Planner",
+  "normalized_tags": [
+    "domain.audit",
+    "domain.finance",
+    "domain.fpa",
+    "domain.invoicing",
+    "domain.payroll",
+    "domain.tax"
+  ],
+  "permissions": {
+    "network": "yes",
+    "read_fs": "yes",
+    "shell": "blocked",
+    "write_fs": "limited"
+  },
+  "risk_tags": [],
+  "scores": {
+    "compatibility": 0.9,
+    "finance_relevance": 7,
+    "fit": 93,
+    "quality": 1.0,
+    "security": 1.0
+  },
+  "slug": "cash-flow-planner",
+  "source": {
+    "discovery_reasons": [
+      "search:cash flow"
+    ],
+    "owner": "leooooooow",
+    "type": "clawhub",
+    "url": "https://clawhub.ai/leooooooow/cash-flow-planner",
+    "version": "1.1.0"
+  },
+  "source_tags": [],
+  "status": {
+    "publishable": false,
+    "stage": "deferred_review",
+    "verification_scope": "L0-L2 only"
+  },
+  "upstream": {
+    "detail": {
+      "createdAt": 1774778854482,
+      "moderation": {},
+      "stats": {
+        "comments": 0,
+        "downloads": 442,
+        "installsAllTime": 0,
+        "installsCurrent": 0,
+        "stars": 0,
+        "versions": 2
+      },
+      "updatedAt": 1778492275298
+    },
+    "scan_summary": {
+      "capabilityTags": [],
+      "hasWarnings": true,
+      "status": "clean"
+    },
+    "verify_summary": {
+      "decision": "pass",
+      "ok": true,
+      "reasons": []
+    }
+  }
+}

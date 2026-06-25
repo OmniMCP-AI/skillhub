@@ -1,7 +1,7 @@
 ---
 name: maybeai-formula-report
 description: Builds a MaybeAI Sheet workbook where raw worksheets are stored as values and derived report worksheets are activated as live formulas, so edits to raw data automatically recalculate the report. Use when the user wants traceable spreadsheet lineage, formula-driven reports, "改 raw 自动重算", "公式可追溯", or one MaybeAI workbook containing both raw and report sheets.
-version: 0.3.1
+version: 0.3.2
 created: 2026-06-18
 ---
 
@@ -52,9 +52,10 @@ Use `maybeai-sheet` for generic API mechanics. Use `traceable-financial-analysis
 1. Extract and normalize raw inputs into a stable worksheet schema.
 2. Write raw worksheets first.
 3. Create report worksheets with final shape and placeholders.
-4. Activate derived cells with `formula/set`.
-5. Recalculate the workbook once near the end.
-6. Read back representative cells to verify traceability.
+4. Activate report blocks with `formula/batch_set` whenever the formulas can be grouped into rectangles.
+5. Use `formula/set` only for sparse one-off cells that are not worth batching.
+6. Recalculate the workbook once near the end.
+7. Read back representative cells to verify traceability.
 
 ## Hard rules
 
@@ -62,14 +63,15 @@ Use `maybeai-sheet` for generic API mechanics. Use `traceable-financial-analysis
 2. Derived report cells are formulas, not pasted numbers.
 3. Yearly or total columns remain formulas such as `=SUM(B:E)`.
 4. Cross-sheet KPI reuse must reference source cells by formula.
-5. Delivery is not complete until recalculation and readback verification both pass.
+5. For report builds, prefer `formula/batch_set` over many repeated `formula/set` calls.
+6. Delivery is not complete until recalculation and readback verification both pass.
 
 ## Reference map
 
 - `references/boundaries.md`
   Decides whether a change belongs in `maybeai-sheet`, `maybeai-formula-report`, or `traceable-financial-analysis`.
 - `references/maybe-sheet-api-notes.md`
-  Low-freedom operational details for the external MaybeAI Sheet endpoints such as `write_new_worksheet`, `formula/set`, recalculation, and deletion edge cases.
+  Low-freedom operational details for the external MaybeAI Sheet endpoints such as `write_new_worksheet`, `formula/batch_set`, `formula/set`, recalculation, and deletion edge cases.
 
 ## Scripts
 
@@ -78,7 +80,7 @@ Use `maybeai-sheet` for generic API mechanics. Use `traceable-financial-analysis
 - `scripts/write_worksheet.sh`
   Creates one worksheet from a JSON 2D array. Use for raw sheets or report scaffolds.
 - `scripts/set_formula_and_recalc.sh`
-  Sets one persisted formula in a target worksheet and optionally recalculates the whole workbook.
+  Sets one persisted formula or one batch of rectangular formula blocks, then optionally recalculates the whole workbook.
 - `scripts/verify_formula_cells.sh`
   Reads back one or more cells and fails if they are empty, still show literal `=...` text, or break simple expectations.
 

@@ -1,0 +1,8 @@
+interface:
+  display_name: "FinClaw Index"
+  short_description: "Route FinClaw finance requests to the right workflow and preflight path."
+  default_prompt: "Use $finclaw-index to route this finance or accounting request, decide whether preflight is needed, and select the right primary skill."
+
+policy:
+  allow_implicit_invocation: true
+

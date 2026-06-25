@@ -1,0 +1,122 @@
+{
+  "compatibility": {
+    "agents": [
+      "codex",
+      "openclaw",
+      "generic"
+    ],
+    "dependencies": [],
+    "os": [
+      "unknown"
+    ],
+    "runtime": [
+      "markdown"
+    ]
+  },
+  "evaluation": {
+    "l0_static": "pass",
+    "l1_security": "clean",
+    "l2_compat": "pass",
+    "l3_sandbox": "not_run",
+    "l4_benchmark": {
+      "avg_latency_seconds": null,
+      "failure_types": [],
+      "success_rate": null,
+      "tier": "not_run"
+    }
+  },
+  "evidence": {
+    "l0": {
+      "checks": {
+        "finance_relevance": 7,
+        "has_frontmatter": true,
+        "has_skill_md": true,
+        "has_structure": true,
+        "has_summary": true,
+        "has_title": true,
+        "quality_score": 1.0
+      },
+      "failures": [],
+      "status": "pass"
+    },
+    "l1": {
+      "capability_risk_tags": [],
+      "failures": [],
+      "pattern_hits": {
+        "dynamic_shell_usage": false,
+        "external_posting": false,
+        "payment_authority": false,
+        "remote_exec_pattern": false,
+        "secret_handling": false
+      },
+      "reason_codes": [],
+      "scan_status": "clean",
+      "status": "clean",
+      "verify_status": "clean"
+    },
+    "l2": {
+      "compatibility_score": 0.9,
+      "dependency_flags": {
+        "has_os_metadata": false,
+        "mentions_node": false,
+        "mentions_python": false,
+        "mentions_shell": false,
+        "requires_network": true,
+        "requires_shell": false
+      },
+      "os": [
+        "unknown"
+      ],
+      "runtime": [
+        "markdown"
+      ],
+      "status": "pass",
+      "systems": []
+    },
+    "text_hash": "6946049a1cb32ba63835a77bc1eac087170f6f719b8081ed91dfa16f9aaec863"
+  },
+  "fit_score": 93,
+  "intent_mapping": {
+    "negative": [],
+    "positive": [
+      "build budget templates",
+      "classify expenses",
+      "perform valuation analysis",
+      "prepare bookkeeping checklists"
+    ]
+  },
+  "permissions": {
+    "network": "yes",
+    "read_fs": "yes",
+    "secret_requirement": "unknown",
+    "shell": "blocked",
+    "write_fs": "limited"
+  },
+  "schema_version": "1.0",
+  "skill": {
+    "name": "Cash Flow Planner",
+    "slug": "cash-flow-planner",
+    "source_type": "clawhub",
+    "source_url": "https://clawhub.ai/leooooooow/cash-flow-planner",
+    "verified": true,
+    "version": "1.1.0"
+  },
+  "status": "deferred_review",
+  "tags": [
+    "agent.codex",
+    "agent.openclaw",
+    "domain.audit",
+    "domain.finance",
+    "domain.fpa",
+    "domain.invoicing",
+    "domain.payroll",
+    "domain.tax",
+    "eval.l0.pass",
+    "eval.l1.clean",
+    "eval.l2.pass",
+    "perm.network.yes",
+    "perm.read_fs.yes",
+    "perm.shell.blocked",
+    "perm.write_fs.limited"
+  ]
+}

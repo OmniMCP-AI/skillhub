@@ -1,0 +1,8 @@
+{
+  "registry": "https://skillhub.fin.maybeai.cn",
+  "namespace": "data-reporting",
+  "slug": "finclaw-financial-analysis-runner",
+  "version": "20260610.163245",
+  "agent": "custom",
+  "installedAt": "2026-06-16T09:18:01.755Z"
+}

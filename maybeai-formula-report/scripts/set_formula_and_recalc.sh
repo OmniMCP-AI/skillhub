@@ -5,7 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=./common.sh
 source "${SCRIPT_DIR}/common.sh"
 
-# Set one formula cell in a MaybeAI workbook and optionally recalculate the doc.
+# Set one formula cell or one batch of formula blocks in a MaybeAI workbook
+# and optionally recalculate the doc.
 #
 # Usage:
 #   bash scripts/set_formula_and_recalc.sh \
@@ -19,17 +20,24 @@ source "${SCRIPT_DIR}/common.sh"
 #     --cell "B5" \
 #     --formula "=利润分析!B11" \
 #     --no-recalc
+#
+#   bash scripts/set_formula_and_recalc.sh \
+#     --doc 6a326bd0d4fb73e454cefda6 \
+#     --operations-json /path/to/formula_blocks.json
 
 usage() {
   cat <<'EOF'
 Usage:
   set_formula_and_recalc.sh --worksheet SHEET --cell A1 --formula '=SUM(B2:E2)' [options]
+  set_formula_and_recalc.sh --operations-json FILE [options]
 
 Options:
   --doc DOC_ID          MaybeAI document id. Falls back to $DOC_ID.
   --worksheet NAME      Target worksheet name.
   --cell A1             Target cell reference.
   --formula TEXT        Formula text beginning with "=".
+  --operations-json FILE
+                       JSON file containing formula/batch_set operations.
   --no-recalc           Skip the final workbook recalculation call.
   --base-url URL        API base URL. Defaults to $MAYBEAI_BASE_URL or production.
   -h, --help            Show help.
@@ -42,6 +50,7 @@ ARG_DOC_ID=""
 WORKSHEET=""
 CELL=""
 FORMULA=""
+OPERATIONS_JSON=""
 RUN_RECALC=1
 
 while [[ $# -gt 0 ]]; do
@@ -60,6 +69,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --formula)
       FORMULA="${2:?missing value for --formula}"
+      shift 2
+      ;;
+    --operations-json)
+      OPERATIONS_JSON="${2:?missing value for --operations-json}"
       shift 2
       ;;
     --no-recalc)
@@ -83,33 +96,65 @@ while [[ $# -gt 0 ]]; do
 done
 
 DOC_ID="${ARG_DOC_ID:-${DOC_ID:-}}"
-if [[ -z "$DOC_ID" || -z "$WORKSHEET" || -z "$CELL" || -z "$FORMULA" ]]; then
+if [[ -z "$DOC_ID" ]]; then
+  usage >&2
+  exit 1
+fi
+
+if [[ -n "$OPERATIONS_JSON" ]]; then
+  if [[ -n "$WORKSHEET" || -n "$CELL" || -n "$FORMULA" ]]; then
+    echo "ERROR: --operations-json cannot be combined with --worksheet/--cell/--formula" >&2
+    exit 1
+  fi
+  if [[ ! -f "$OPERATIONS_JSON" ]]; then
+    echo "ERROR: operations file not found: $OPERATIONS_JSON" >&2
+    exit 1
+  fi
+elif [[ -z "$WORKSHEET" || -z "$CELL" || -z "$FORMULA" ]]; then
   usage >&2
   exit 1
 fi
 
 DOC_URI="$(maybeai_doc_uri "$DOC_ID")"
 
-SET_PAYLOAD=$(
-  jq -n \
-    --arg uri "$DOC_URI" \
-    --arg worksheet_name "$WORKSHEET" \
-    --arg cell "$CELL" \
-    --arg formula "$FORMULA" \
-    '{
-      uri: $uri,
-      worksheet_name: $worksheet_name,
-      cell: $cell,
-      formula: $formula,
-      skip_recalculation: true
-    }'
-)
+if [[ -n "$OPERATIONS_JSON" ]]; then
+  BATCH_PAYLOAD=$(
+    jq -n \
+      --arg uri "$DOC_URI" \
+      --argjson operations "$(jq -c . "$OPERATIONS_JSON")" \
+      --arg recalc_mode "$([[ "$RUN_RECALC" -eq 1 ]] && echo workbook || echo none)" \
+      '{
+        uri: $uri,
+        skip_recalculation: true,
+        recalculate_mode: $recalc_mode,
+        operations: $operations
+      }'
+  )
 
-echo "=== formula/set ${WORKSHEET}!${CELL} ==="
-maybeai_post_json "/api/v1/excel/formula/set" "$SET_PAYLOAD" | jq .
+  echo "=== formula/batch_set $(basename "$OPERATIONS_JSON") ==="
+  maybeai_post_json "/api/v1/excel/formula/batch_set" "$BATCH_PAYLOAD" | jq .
+else
+  SET_PAYLOAD=$(
+    jq -n \
+      --arg uri "$DOC_URI" \
+      --arg worksheet_name "$WORKSHEET" \
+      --arg cell "$CELL" \
+      --arg formula "$FORMULA" \
+      '{
+        uri: $uri,
+        worksheet_name: $worksheet_name,
+        cell: $cell,
+        formula: $formula,
+        skip_recalculation: true
+      }'
+  )
 
-if [[ "$RUN_RECALC" -eq 1 ]]; then
-  RECALC_PAYLOAD=$(jq -n --arg uri "$DOC_URI" '{uri: $uri}')
-  echo "=== recalculate_formulas ==="
-  maybeai_post_json "/api/v1/excel/recalculate_formulas" "$RECALC_PAYLOAD" | jq .
+  echo "=== formula/set ${WORKSHEET}!${CELL} ==="
+  maybeai_post_json "/api/v1/excel/formula/set" "$SET_PAYLOAD" | jq .
+
+  if [[ "$RUN_RECALC" -eq 1 ]]; then
+    RECALC_PAYLOAD=$(jq -n --arg uri "$DOC_URI" '{uri: $uri}')
+    echo "=== recalculate_formulas ==="
+    maybeai_post_json "/api/v1/excel/recalculate_formulas" "$RECALC_PAYLOAD" | jq .
+  fi
 fi

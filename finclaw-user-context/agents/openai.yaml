@@ -1,0 +1,8 @@
+interface:
+  display_name: "FinClaw User Context"
+  short_description: "Track finance context, source readiness, and preflight defaults for FinClaw."
+  default_prompt: "Use $finclaw-user-context to check saved finance context, source readiness, and preflight requirements before analysis starts."
+
+policy:
+  allow_implicit_invocation: true
+

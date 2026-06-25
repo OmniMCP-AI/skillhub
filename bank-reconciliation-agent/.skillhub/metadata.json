@@ -1,0 +1,8 @@
+{
+  "registry": "https://skillhub.fin.maybeai.cn",
+  "namespace": "global",
+  "slug": "bank-reconciliation-agent",
+  "version": "1.0.0",
+  "agent": "custom",
+  "installedAt": "2026-06-16T09:18:07.764Z"
+}
